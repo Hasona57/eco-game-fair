@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wildlife Conservation Booth</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to top right, #c8e6c9, #ffffff);
+            margin: 0;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        .game-area {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px;
+        }
+        .animal {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            cursor: grab;
+            transition: opacity 0.3s;
+        }
+        .animal.used {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .habitat {
+            width: 120px;
+            height: 120px;
+            margin: 10px;
+            border: 3px dashed #4CAF50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            background-color: #f1f8e9;
+        }
+        .scoreboard {
+            text-align: center;
+            font-size: 1.4em;
+            margin: 15px;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .popup-notification {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 3px solid #4CAF50;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1001;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        .popup-notification p {
+            font-size: 1.2em;
+        }
+        .popup-notification button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>🦜 Protect Endangered Species</h1>
+    <p>Drag the animals to their correct habitats. Correct placement adds points, mistakes deduct points. Each animal can be placed only once!</p>
+</header>
+
+<div class="scoreboard">
+    <strong>Player:</strong> <span id="playerName"></span> |
+    <strong>School:</strong> <span id="schoolName"></span> |
+    <strong>Grade:</strong> <span id="grade"></span> |
+    <strong>Time Left:</strong> <span id="timer">90</span>s |
+    <strong>Score:</strong> <span id="score">0</span>
+</div>
+
+<div class="game-area">
+    <div id="animals">
+        <img src="../assets/panda.png" class="animal" draggable="true" data-habitat="forest" ondragstart="drag(event)">
+        <img src="../assets/polar-bear.png" class="animal" draggable="true" data-habitat="arctic" ondragstart="drag(event)">
+        <img src="../assets/lion.png" class="animal" draggable="true" data-habitat="savannah" ondragstart="drag(event)">
+        <img src="../assets/koala.png" class="animal" draggable="true" data-habitat="eucalyptus" ondragstart="drag(event)">
+    </div>
+    <div id="habitats">
+        <div class="habitat" data-habitat="forest" ondrop="drop(event)" ondragover="allowDrop(event)">🌲 Forest</div>
+        <div class="habitat" data-habitat="arctic" ondrop="drop(event)" ondragover="allowDrop(event)">❄️ Arctic</div>
+        <div class="habitat" data-habitat="savannah" ondrop="drop(event)" ondragover="allowDrop(event)">🌾 Savannah</div>
+        <div class="habitat" data-habitat="eucalyptus" ondrop="drop(event)" ondragover="allowDrop(event)">🌿 Eucalyptus</div>
+    </div>
+</div>
+
+<div class="popup-overlay" id="popupOverlay"></div>
+<div class="popup-notification" id="popupNotification">
+    <p id="popupMessage"></p>
+    <button onclick="closePopup()">OK</button>
+</div>
+
+<script>
+    // Lock check & one-time play verification
+    if (localStorage.getItem('playerLocked') !== 'true') {
+        alert("Please login first!");
+        window.location.href = "../login.html";
+    }
+    if (localStorage.getItem('wildlifePlayed') === 'true') {
+        alert("You've already played this game.");
+        window.location.href = "../index.html";
+    }
+
+    const playerName = localStorage.getItem('playerName') || "Player";
+    const schoolName = localStorage.getItem('schoolName') || "School";
+    const grade = localStorage.getItem('grade') || "Grade";
+
+    document.getElementById('playerName').innerText = playerName;
+    document.getElementById('schoolName').innerText = schoolName;
+    document.getElementById('grade').innerText = grade;
+
+    let score = 0;
+    let submitted = false;
+    let timeLeft = 90;
+
+    function allowDrop(ev) { ev.preventDefault(); }
+
+    function drag(ev) {
+        ev.dataTransfer.setData("animalHabitat", ev.target.dataset.habitat);
+        ev.dataTransfer.setData("animalSrc", ev.target.src);
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const correctHabitat = ev.dataTransfer.getData("animalHabitat");
+        const animalSrc = ev.dataTransfer.getData("animalSrc");
+        const targetHabitat = ev.target.dataset.habitat;
+
+        if (correctHabitat === targetHabitat) {
+            score += 150;
+            showPopup("✅ Correct! +150 points");
+            ev.target.style.backgroundColor = "#a5d6a7";
+        } else {
+            score -= 50;
+            showPopup("❌ Wrong habitat! -50 points");
+            ev.target.style.backgroundColor = "#ef9a9a";
+        }
+
+        document.getElementById("score").innerText = score;
+        setTimeout(() => ev.target.style.backgroundColor = "", 500);
+
+        // Mark animal as used (disable)
+        const animal = Array.from(document.querySelectorAll('.animal'))
+            .find(img => img.src === animalSrc);
+        if (animal) {
+            animal.draggable = false;
+            animal.classList.add("used");
+        }
+
+        checkAllAnimalsUsed();
+    }
+
+    function showPopup(message) {
+        document.getElementById('popupOverlay').style.display = 'block';
+        document.getElementById('popupNotification').style.display = 'block';
+        document.getElementById('popupMessage').innerText = message;
+    }
+
+    function closePopup() {
+        document.getElementById('popupOverlay').style.display = 'none';
+        document.getElementById('popupNotification').style.display = 'none';
+    }
+
+    function checkAllAnimalsUsed() {
+        const remaining = document.querySelectorAll('.animal:not(.used)').length;
+        if (remaining === 0) {
+            endGameAndSubmit();
+        }
+    }
+
+    function endGameAndSubmit() {
+        if (submitted) return;
+        submitted = true;
+        showPopup("Game Over! Submitting your score...");
+
+        localStorage.setItem('wildlifeScore', score);
+        localStorage.setItem('wildlifePlayed', 'true');
+
+        setTimeout(() => {
+            alert(`Game Over! Your Score: ${score}`);
+            window.location.href = "../index.html";
+        }, 2000);
+    }
+
+    const timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            endGameAndSubmit();
+        }
+    }, 1000);
+</script>
+</body>
+</html>

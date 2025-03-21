@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Pollution Booth</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to top right, #e0f7fa, #f9fbe7);
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-bottom: 5px solid #2e7d32;
+        }
+        .game-area {
+            position: relative;
+            height: 500px;
+            border: 2px solid #4CAF50;
+            margin: 20px auto;
+            max-width: 800px;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #f1f8e9, #a5d6a7);
+        }
+        .polluter {
+            width: 80px;
+            height: 80px;
+            position: absolute;
+            cursor: pointer;
+            user-select: none;
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .score-board {
+            text-align: center;
+            margin: 20px;
+            font-size: 1.4em;
+        }
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .popup-notification {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 3px solid #4CAF50;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1001;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+        }
+        .popup-notification p {
+            font-size: 1.2em;
+        }
+        .popup-notification button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🌫️ Clear the Skies</h1>
+        <p>Click polluting factories 🏭 and cars 🚗 to clear them! But watch out — missing them will reduce your score.</p>
+    </header>
+
+    <div class="score-board">
+        <strong>Player:</strong> <span id="playerName"></span> |
+        <strong>School:</strong> <span id="schoolName"></span> |
+        <strong>Grade:</strong> <span id="grade"></span> |
+        <strong>Time Left:</strong> <span id="timer">60</span>s |
+        <strong>Score:</strong> <span id="score">0</span>
+    </div>
+
+    <div id="game-area" class="game-area"></div>
+
+    <div class="popup-overlay" id="popupOverlay"></div>
+    <div class="popup-notification" id="popupNotification">
+        <p id="popupMessage"></p>
+        <button onclick="closePopup()">OK</button>
+    </div>
+
+    <script>
+        if (localStorage.getItem('playerLocked') !== 'true') {
+            alert("Please login first!");
+            window.location.href = "../login.html";
+        }
+    
+        if (localStorage.getItem('airPollutionPlayed') === 'true') {
+            alert("You've already played this game.");
+            window.location.href = "../index.html";
+        }
+    
+        const playerName = localStorage.getItem('playerName') || "Player";
+        const schoolName = localStorage.getItem('schoolName') || "School";
+        const grade = localStorage.getItem('grade') || "Grade";
+        document.getElementById('playerName').innerText = playerName;
+        document.getElementById('schoolName').innerText = schoolName;
+        document.getElementById('grade').innerText = grade;
+    
+        let score = 0;
+        let submitted = false;
+        let timeLeft = 60;
+        const gameArea = document.getElementById("game-area");
+    
+        function spawnPolluter() {
+            const polluter = document.createElement("div");
+            polluter.className = "polluter";
+            polluter.style.top = `${Math.random() * 80}%`;
+            polluter.style.left = `${Math.random() * 80}%`;
+    
+            const type = Math.random() < 0.7 ? "polluter" : "clean-item";
+            if (type === "polluter") {
+                polluter.innerHTML = Math.random() < 0.5 ? "🏭" : "🚗";
+                polluter.onclick = () => {
+                    score += 50;
+                    updateScore();
+                    showPopup("Polluter cleared! +50 points");
+                    polluter.remove();
+                };
+                setTimeout(() => {
+                    if (gameArea.contains(polluter)) {
+                        score -= 30;
+                        updateScore();
+                        showPopup("You missed a polluter! -30 points");
+                        polluter.remove();
+                    }
+                }, 2500);
+            } else {
+                polluter.innerHTML = "🌳";
+                polluter.onclick = () => {
+                    score -= 40;
+                    updateScore();
+                    showPopup("Oops! This was a tree! -40 points");
+                    polluter.remove();
+                };
+                setTimeout(() => polluter.remove(), 2500);
+            }
+    
+            gameArea.appendChild(polluter);
+        }
+    
+        function updateScore() {
+            document.getElementById('score').innerText = score;
+        }
+    
+        function showPopup(message) {
+            document.getElementById('popupOverlay').style.display = 'block';
+            document.getElementById('popupNotification').style.display = 'block';
+            document.getElementById('popupMessage').innerText = message;
+        }
+    
+        function closePopup() {
+            document.getElementById('popupOverlay').style.display = 'none';
+            document.getElementById('popupNotification').style.display = 'none';
+        }
+    
+        function endGameAndSubmit() {
+            if (submitted) return;
+            submitted = true;
+            clearInterval(spawnInterval);
+            clearInterval(timerInterval);
+            localStorage.setItem('airPollutionScore', score);
+            localStorage.setItem('airPollutionPlayed', 'true');
+            showPopup("Time's up! Submitting your score...");
+    
+            setTimeout(() => {
+                window.location.href = "../index.html";
+            }, 2000);
+        }
+    
+        const spawnInterval = setInterval(spawnPolluter, 1200);
+        const timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft;
+            if (timeLeft <= 0) endGameAndSubmit();
+        }, 1000);
+    </script>
+</body>
+</html>

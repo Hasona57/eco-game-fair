@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco-Friendly Home Booth</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #dff9fb, #c7ecee);
+            text-align: center;
+            padding: 30px;
+        }
+        header {
+            background-color: #27ae60;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        h1 { margin-bottom: 10px; }
+        .appliance {
+            width: 120px; height: 120px; margin: 10px;
+            cursor: pointer; transition: transform 0.2s, opacity 0.4s;
+        }
+        .appliance:hover { transform: scale(1.1); }
+        .old { border: 3px solid red; box-shadow: 0 0 10px rgba(255,0,0,0.5); }
+        .new { border: 3px solid green; box-shadow: 0 0 10px rgba(0,255,0,0.5); }
+        #replacements { margin-top: 20px; }
+        button {
+            padding: 10px 20px; background-color: #27ae60;
+            color: white; border: none; border-radius: 5px;
+            cursor: pointer; transition: 0.3s;
+        }
+        button:hover { background-color: #219150; transform: scale(1.05); }
+        #playerInfo { margin-bottom: 15px; font-weight: bold; }
+        #timerBar, #progressBar {
+            width: 100%; height: 20px; background-color: #ddd;
+            border-radius: 10px; margin: 10px 0; overflow: hidden;
+        }
+        #timerFill, #progressFill {
+            height: 100%; width: 100%; transition: width 1s;
+        }
+        #timerFill { background-color: #e74c3c; }
+        #progressFill { background-color: #27ae60; }
+        .notification {
+            position: fixed; top: 20px; right: 20px;
+            background: #2ecc71; color: white; padding: 15px 20px;
+            border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            opacity: 0; transform: translateX(100px);
+            animation: slidein 0.5s forwards, fadeout 0.5s 2.5s forwards;
+            z-index: 9999;
+        }
+        @keyframes slidein {
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeout {
+            to { opacity: 0; transform: translateX(100px); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏡 Green Home Makeover Game</h1>
+        <p>Replace old appliances with eco-friendly ones before time runs out!</p>
+        <div id="playerInfo"></div>
+    </header>
+
+    <div id="timerBar"><div id="timerFill"></div></div>
+    <div id="progressBar"><div id="progressFill" style="width: 0%;"></div></div>
+
+    <div class="game-area">
+        <div>
+            <img src="../assets/old-bulb.png" class="appliance old" onclick="replaceAppliance(this)" id="appliance1">
+            <img src="../assets/old-fridge.png" class="appliance old" onclick="replaceAppliance(this)" id="appliance2">
+            <img src="../assets/old-ac.png" class="appliance old" onclick="replaceAppliance(this)" id="appliance3">
+        </div>
+        <div id="replacements" style="display: none;">
+            <img src="../assets/led-bulb.png" class="appliance new" onclick="selectReplacement(this)">
+            <img src="../assets/energy-star-fridge.png" class="appliance new" onclick="selectReplacement(this)">
+            <img src="../assets/inverter-ac.png" class="appliance new" onclick="selectReplacement(this)">
+        </div>
+
+        <p>Score: <span id="score">0</span></p>
+        <button onclick="manualSubmit()">Submit Score</button>
+    </div>
+
+    <div id="notifications"></div>
+
+    <script>
+        if (localStorage.getItem('playerLocked') !== 'true') {
+            alert("Please login first!");
+            window.location.href = "../login.html";
+        }
+    
+        if (localStorage.getItem('homeGameSubmitted') === 'true') {
+            showNotification("You have already played this game!", "error");
+            setTimeout(() => window.location.href = "../index.html", 1500);
+        }
+    
+        const playerName = localStorage.getItem('playerName');
+        const schoolName = localStorage.getItem('schoolName');
+        const grade = localStorage.getItem('grade');
+        document.getElementById("playerInfo").innerHTML = `
+            <strong>Player:</strong> ${playerName}<br>
+            <strong>School:</strong> ${schoolName}<br>
+            <strong>Grade:</strong> ${grade}
+        `;
+    
+        let score = 0;
+        let currentOldAppliance;
+        let replacedCount = 0;
+        let submitted = false;
+        const totalAppliances = document.querySelectorAll('.appliance.old').length;
+    
+        function replaceAppliance(oldItem) {
+            if (oldItem.classList.contains('old')) {
+                currentOldAppliance = oldItem;
+                document.getElementById("replacements").style.display = "block";
+            }
+        }
+    
+        function selectReplacement(newItem) {
+            currentOldAppliance.src = newItem.src;
+            currentOldAppliance.classList.remove("old");
+            currentOldAppliance.style.pointerEvents = "none";
+            currentOldAppliance.style.opacity = "0.8";
+            document.getElementById("replacements").style.display = "none";
+            score += 200;
+            replacedCount++;
+            document.getElementById("score").innerText = score;
+    
+            const progressPercent = (replacedCount / totalAppliances) * 100;
+            document.getElementById('progressFill').style.width = progressPercent + "%";
+    
+            showNotification("Replaced with eco-friendly option! +200 points 🎉", "success");
+    
+            if (replacedCount >= totalAppliances) {
+                autoSubmit();
+            }
+        }
+    
+        function showNotification(message, type) {
+            const note = document.createElement("div");
+            note.classList.add("notification");
+            note.style.backgroundColor = type === "error" ? "#e74c3c" : "#27ae60";
+            note.innerText = message;
+            document.getElementById("notifications").appendChild(note);
+            setTimeout(() => { note.remove(); }, 3000);
+        }
+    
+        function autoSubmit() {
+            if (submitted) return;
+            submitted = true;
+            localStorage.setItem('homeGameSubmitted', 'true');
+            showNotification("All appliances replaced! Submitting score... ✅", "success");
+            setTimeout(() => {
+                window.location.href = "../index.html";
+            }, 2000);
+        }
+    
+        function manualSubmit() {
+            if (submitted) return;
+            if (replacedCount < totalAppliances) {
+                showNotification("Please replace all old appliances first!", "error");
+                return;
+            }
+            autoSubmit();
+        }
+    
+        let timer = 30;
+        function updateTimerBar() {
+            const percent = (timer / 30) * 100;
+            document.getElementById('timerFill').style.width = percent + "%";
+        }
+        updateTimerBar();
+    
+        const countdown = setInterval(() => {
+            timer--;
+            updateTimerBar();
+            if (timer <= 0) {
+                clearInterval(countdown);
+                if (!submitted) {
+                    showNotification("Time's up! Auto-submitting your score.", "error");
+                    autoSubmit();
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Finance Booth</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .investment { padding: 10px; margin: 10px; border: 1px solid #ccc; cursor: pointer; }
+        .selected { background: #a5d6a7; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>💰 Eco-Investment Challenge</h1>
+        <p>Invest $1000 in sustainable businesses!</p>
+    </header>
+
+    <div class="game-area">
+        <div id="investments">
+            <div class="investment" data-multiplier="2" onclick="selectInvestment(this)">🌱 Organic Farm (+100%)</div>
+            <div class="investment" data-multiplier="0.5" onclick="selectInvestment(this)">🛢️ Oil Company (-50%)</div>
+            <div class="investment" data-multiplier="3" onclick="selectInvestment(this)">☀️ Solar Energy (+200%)</div>
+        </div>
+        
+        <p>Score: <span id="score">1000</span></p>
+        <input type="text" id="playerName" placeholder="Enter your name">
+        <button onclick="submitScore()">Submit Score</button>
+    </div>
+
+    <script>
+        let score = 1000;
+
+        function selectInvestment(investment) {
+            const multiplier = parseFloat(investment.dataset.multiplier);
+            score = Math.floor(score * multiplier);
+            document.getElementById("score").innerText = score;
+            investment.classList.add("selected");
+        }
+
+        function submitScore() {
+            const playerName = document.getElementById("playerName").value.trim();
+            if (!playerName) return alert("Enter your name!");
+            if (window.opener) window.opener.submitScore(playerName, score);
+            alert("Score submitted!");
+            window.close();
+        }
+    </script>
+</body>
+</html>
