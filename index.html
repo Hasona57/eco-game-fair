@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌍 Eco-Game Fair – March 30, 2025 🎮</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>🌍 Eco-Game Fair – March 30, 2025 🎮</h1>
+        <p>Move with <b>W A S D</b> and press <b>E</b> near booths to enter mini-games!</p>
+        <div id="countdown">Countdown: <span id="timer">24:00:00</span></div>
+    </header>
+
+    <canvas id="gameCanvas" width="1024" height="600"></canvas>
+
+    <div class="leaderboard">
+        <h2>🏆 Leaderboard (Top 10)</h2>
+        <ul id="leaderboardList"></ul>
+    </div>
+
+    <div class="social-share">
+        <p>Share the event:</p>
+        <a href="#" class="social-button"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="social-button"><i class="fab fa-facebook"></i></a>
+        <a href="#" class="social-button"><i class="fab fa-linkedin"></i></a>
+    </div>
+    <button onclick="resetDetails()">Reset Player Info</button>
+
+    <script>
+        function resetDetails() {
+            localStorage.clear(); // or remove specific items
+            alert("Your saved data has been cleared. You can now re-enter your details.");
+            window.location.reload(); // or redirect to login page
+        }
+    </script>
+    
+    <script src="script.js"></script>
+</body>
+</html>
