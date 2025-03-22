@@ -70,154 +70,149 @@
     <div id="timerDisplay" class="timer"></div>
     <div id="popup"></div>
 
+    <!-- Hidden form to send data to script2.php exactly like index.html -->
+    <form id="sendToScript2" action="../script2.php" method="POST" style="display:none;">
+        <input type="hidden" name="playerName" id="playerNameInput">
+        <input type="hidden" name="schoolName" id="schoolNameInput">
+        <input type="hidden" name="grade" id="gradeInput">
+        <input type="hidden" name="score" id="scoreInput">
+    </form>
+
     <script>
     const playerName = localStorage.getItem('playerName');
-const schoolName = localStorage.getItem('schoolName');
-const grade = localStorage.getItem('grade');
-const userId = playerName ? playerName.replace(/\s+/g, '_').toLowerCase() : "";
+    const schoolName = localStorage.getItem('schoolName');
+    const grade = localStorage.getItem('grade');
+    const userId = playerName ? playerName.replace(/\s+/g, '_').toLowerCase() : "";
 
-if (localStorage.getItem('playerLocked') !== 'true' || !playerName) {
-    showPopup("⚠️ Please login first. Redirecting...");
-    setTimeout(() => {
-        window.location.href = "../login.html";
-    }, 2500);
-}
-
-if (localStorage.getItem(`quizSubmitted_${userId}`) === 'true') {
-    showPopup("ℹ️ You have already played this game! Redirecting...", 3000);
-    setTimeout(() => {
-        window.location.href = "../index.html";
-    }, 3000);
-}
-
-document.getElementById("playerInfo").innerHTML = `
-    👤 <strong>${playerName}</strong> | 🏫 ${schoolName} | 🎓 Grade ${grade}
-`;
-
-const questions = [
-    { q: "What percentage of Earth's water is freshwater?", options: ["3%", "10%", "30%", "50%"], answer: 0 },
-    { q: "Which gas is most responsible for global warming?", options: ["Carbon Dioxide", "Methane", "Oxygen", "Nitrogen"], answer: 0 },
-    { q: "Which country emits the most CO2 today?", options: ["USA", "India", "China", "Russia"], answer: 2 },
-    { q: "What is the main cause of ocean acidification?", options: ["Plastic waste", "Oil spills", "CO2 absorption", "Algae"], answer: 2 },
-    { q: "Deforestation mostly occurs due to:", options: ["Urban expansion", "Cattle ranching", "Tourism", "Fishing"], answer: 1 },
-    { q: "How much has the global temperature risen since 1900?", options: ["0.5°C", "1.1°C", "2.5°C", "3.7°C"], answer: 1 },
-    { q: "Fastest way to reduce your carbon footprint?", options: ["Fly more", "Go vegetarian", "Buy clothes monthly", "Use plastic bags"], answer: 1 },
-    { q: "What is the Paris Agreement goal?", options: ["Stop plastic use", "Limit warming to 1.5°C", "No cars by 2030", "Plant one tree per person"], answer: 1 },
-    { q: "Melting permafrost releases:", options: ["Helium", "Oxygen", "Methane", "Hydrogen"], answer: 2 },
-    { q: "Main source of renewable energy worldwide?", options: ["Wind", "Hydro", "Nuclear", "Coal"], answer: 1 }
-];
-
-let score = Number(localStorage.getItem(`quizScore_${userId}`)) || 0;
-let currentQ = Number(localStorage.getItem(`quizCurrentQ_${userId}`)) || 0;
-let scoreSubmitted = localStorage.getItem(`quizSubmitted_${userId}`) === 'true';
-let timer;
-let timerCount = 15;
-let questionLocked = false;
-
-document.getElementById('score').innerText = score;
-
-function startQuestion() {
-    if (scoreSubmitted) {
-        document.getElementById('quizArea').innerHTML = "<p>✅ Score already submitted! Thank you.</p>";
-        return;
+    if (localStorage.getItem('playerLocked') !== 'true' || !playerName) {
+        showPopup("⚠️ Please login first. Redirecting...");
+        setTimeout(() => {
+            window.location.href = "../login.html";
+        }, 2500);
     }
 
-    if (currentQ >= questions.length) {
-        autoSubmitScore();
-        return;
+    if (localStorage.getItem(`quizSubmitted_${userId}`) === 'true') {
+        showPopup("ℹ️ You have already played this game! Redirecting...", 3000);
+        setTimeout(() => {
+            window.location.href = "../index.html";
+        }, 3000);
     }
 
-    questionLocked = false;
-    const q = questions[currentQ];
-    document.getElementById('quizArea').innerHTML = `
-        <div class="question">
-            <strong>Question ${currentQ + 1}:</strong><br> ${q.q}
-            <div id="optionsArea"></div>
-        </div>
+    document.getElementById("playerInfo").innerHTML = `
+        👤 <strong>${playerName}</strong> | 🏫 ${schoolName} | 🎓 Grade ${grade}
     `;
 
-    q.options.forEach((opt, i) => {
-        const optBtn = document.createElement('button');
-        optBtn.innerText = opt;
-        optBtn.onclick = () => answerQuestion(i, q.answer);
-        document.getElementById('optionsArea').appendChild(optBtn);
-    });
+    const questions = [
+        { q: "What percentage of Earth's water is freshwater?", options: ["3%", "10%", "30%", "50%"], answer: 0 },
+        { q: "Which gas is most responsible for global warming?", options: ["Carbon Dioxide", "Methane", "Oxygen", "Nitrogen"], answer: 0 },
+        { q: "Which country emits the most CO2 today?", options: ["USA", "India", "China", "Russia"], answer: 2 },
+        { q: "What is the main cause of ocean acidification?", options: ["Plastic waste", "Oil spills", "CO2 absorption", "Algae"], answer: 2 },
+        { q: "Deforestation mostly occurs due to:", options: ["Urban expansion", "Cattle ranching", "Tourism", "Fishing"], answer: 1 },
+        { q: "How much has the global temperature risen since 1900?", options: ["0.5°C", "1.1°C", "2.5°C", "3.7°C"], answer: 1 },
+        { q: "Fastest way to reduce your carbon footprint?", options: ["Fly more", "Go vegetarian", "Buy clothes monthly", "Use plastic bags"], answer: 1 },
+        { q: "What is the Paris Agreement goal?", options: ["Stop plastic use", "Limit warming to 1.5°C", "No cars by 2030", "Plant one tree per person"], answer: 1 },
+        { q: "Melting permafrost releases:", options: ["Helium", "Oxygen", "Methane", "Hydrogen"], answer: 2 },
+        { q: "Main source of renewable energy worldwide?", options: ["Wind", "Hydro", "Nuclear", "Coal"], answer: 1 }
+    ];
 
-    timerCount = 15;
-    document.getElementById('timerDisplay').innerText = `⏳ Time left: ${timerCount}s`;
-    timer = setInterval(() => {
-        timerCount--;
-        document.getElementById('timerDisplay').innerText = `⏳ Time left: ${timerCount}s`;
-        if (timerCount <= 0) {
-            clearInterval(timer);
-            answerQuestion(null, q.answer);
-        }
-    }, 1000);
-}
+    let score = Number(localStorage.getItem(`quizScore_${userId}`)) || 0;
+    let currentQ = Number(localStorage.getItem(`quizCurrentQ_${userId}`)) || 0;
+    let scoreSubmitted = localStorage.getItem(`quizSubmitted_${userId}`) === 'true';
+    let timer;
+    let timerCount = 15;
+    let questionLocked = false;
 
-function answerQuestion(selected, correctAnswer) {
-    if (questionLocked) return;
-    questionLocked = true;
-    clearInterval(timer);
-
-    document.querySelectorAll('#optionsArea button').forEach(btn => btn.disabled = true);
-
-    if (selected === correctAnswer) {
-        score += 100;
-        showPopup("✅ Correct! +100");
-    } else {
-        score -= 50;
-        showPopup("❌ Wrong or Timeout! -50");
-    }
-
-    currentQ++;
-    localStorage.setItem(`quizScore_${userId}`, score);
-    localStorage.setItem(`quizCurrentQ_${userId}`, currentQ);
     document.getElementById('score').innerText = score;
 
-    setTimeout(startQuestion, 1500);
-}
+    function startQuestion() {
+        if (scoreSubmitted) {
+            document.getElementById('quizArea').innerHTML = "<p>✅ Score already submitted! Thank you.</p>";
+            return;
+        }
 
-function autoSubmitScore() {
-    if (scoreSubmitted) return;
+        if (currentQ >= questions.length) {
+            autoSubmitScore();
+            return;
+        }
 
-    localStorage.setItem(`quizSubmitted_${userId}`, 'true');
-    submitToLeaderboard(score);
-    showPopup("🎯 Score submitted to leaderboard! Redirecting...", 3000);
+        questionLocked = false;
+        const q = questions[currentQ];
+        document.getElementById('quizArea').innerHTML = `
+            <div class="question">
+                <strong>Question ${currentQ + 1}:</strong><br> ${q.q}
+                <div id="optionsArea"></div>
+            </div>
+        `;
 
-    setTimeout(() => {
-        window.location.href = "../index.html";
-    }, 3000);
-}
+        q.options.forEach((opt, i) => {
+            const optBtn = document.createElement('button');
+            optBtn.innerText = opt;
+            optBtn.onclick = () => answerQuestion(i, q.answer);
+            document.getElementById('optionsArea').appendChild(optBtn);
+        });
 
-function showPopup(message, duration = 2000) {
-    const popup = document.getElementById("popup");
-    popup.innerText = message;
-    popup.classList.add("show");
-    setTimeout(() => popup.classList.remove("show"), duration);
-}
+        timerCount = 15;
+        document.getElementById('timerDisplay').innerText = `⏳ Time left: ${timerCount}s`;
+        timer = setInterval(() => {
+            timerCount--;
+            document.getElementById('timerDisplay').innerText = `⏳ Time left: ${timerCount}s`;
+            if (timerCount <= 0) {
+                clearInterval(timer);
+                answerQuestion(null, q.answer);
+            }
+        }, 1000);
+    }
 
-function submitToLeaderboard(finalScore) {
-    let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    function answerQuestion(selected, correctAnswer) {
+        if (questionLocked) return;
+        questionLocked = true;
+        clearInterval(timer);
 
-    leaderboard.push({
-        name: playerName,
-        school: schoolName,
-        grade: grade,
-        score: finalScore
-    });
+        document.querySelectorAll('#optionsArea button').forEach(btn => btn.disabled = true);
 
-    leaderboard.sort((a, b) => b.score - a.score); // Sort from highest to lowest
-    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+        if (selected === correctAnswer) {
+            score += 100;
+            showPopup("✅ Correct! +100");
+        } else {
+            score -= 50;
+            showPopup("❌ Wrong or Timeout! -50");
+        }
 
-    console.log("Leaderboard updated:", leaderboard);
-}
+        currentQ++;
+        localStorage.setItem(`quizScore_${userId}`, score);
+        localStorage.setItem(`quizCurrentQ_${userId}`, currentQ);
+        document.getElementById('score').innerText = score;
 
-if (currentQ < questions.length && !scoreSubmitted) {
-    startQuestion();
-} else if (!scoreSubmitted) {
-    autoSubmitScore();
-}
+        setTimeout(startQuestion, 1500);
+    }
+
+    function autoSubmitScore() {
+        if (scoreSubmitted) return;
+        localStorage.setItem(`quizSubmitted_${userId}`, 'true');
+        sendToScript2(score);
+    }
+
+    function showPopup(message, duration = 2000) {
+        const popup = document.getElementById("popup");
+        popup.innerText = message;
+        popup.classList.add("show");
+        setTimeout(() => popup.classList.remove("show"), duration);
+    }
+
+    // Function to send data to script2.php exactly like index.html
+    function sendToScript2(finalScore) {
+        document.getElementById('playerNameInput').value = playerName;
+        document.getElementById('schoolNameInput').value = schoolName;
+        document.getElementById('gradeInput').value = grade;
+        document.getElementById('scoreInput').value = finalScore;
+        document.getElementById('sendToScript2').submit();
+    }
+
+    if (currentQ < questions.length && !scoreSubmitted) {
+        startQuestion();
+    } else if (!scoreSubmitted) {
+        autoSubmitScore();
+    }
 
     </script>    
 </body>
