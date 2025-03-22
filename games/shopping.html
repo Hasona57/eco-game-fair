@@ -6,153 +6,148 @@
     <title>Eco-Friendly Shopping Challenge</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .product { width: 100px; height: 100px; margin: 10px; cursor: pointer; border: 2px solid transparent; }
-        .selected { border-color: #4CAF50 !important; opacity: 0.5; pointer-events: none; }
-        .popup-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 999; }
-        .popup-notification { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #4CAF50; z-index: 1000; display: none; }
-        button { padding: 10px 20px; }
         body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #e0f7fa, #e8f5e9);
-    color: #333;
-}
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa, #e8f5e9);
+            color: #333;
+        }
 
-header {
-    text-align: center;
-    padding: 30px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border-bottom: 5px solid #2e7d32;
-}
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-bottom: 6px solid #2e7d32;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
 
-header h1 {
-    font-size: 2.5em;
-    margin-bottom: 10px;
-}
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
 
-header p {
-    font-size: 1.2em;
-    margin-top: 0;
-}
+        header p, #playerInfo {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
 
-#playerInfo {
-    margin: 10px 0;
-    font-size: 1.1em;
-    color: #f9f9f9;
-}
+        .game-area {
+            text-align: center;
+            padding: 40px 20px;
+            background: #f0fff0;
+            border-radius: 20px;
+            margin: 30px auto;
+            max-width: 1200px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
 
-.game-area {
-    text-align: center;
-    padding: 30px;
-}
+        #products {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+            justify-items: center;
+            margin: 40px 0;
+        }
 
-#products {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin: 30px 0;
-}
+        .product {
+            width: 120px;
+            height: 120px;
+            margin: 10px;
+            border: 3px solid #ccc;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background-color: white;
+            object-fit: cover;
+        }
 
-.product {
-    width: 120px;
-    height: 120px;
-    margin: 15px;
-    border: 2px solid #ccc;
-    border-radius: 12px;
-    transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
-    cursor: pointer;
-    background-color: white;
-}
+        .product:hover {
+            transform: scale(1.15) rotate(-2deg);
+            box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.2);
+        }
 
-.product:hover {
-    transform: scale(1.1);
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
-}
+        .selected {
+            border-color: #4CAF50 !important;
+            opacity: 0.4 !important;
+            transform: scale(0.95) rotate(0deg) !important;
+            filter: grayscale(60%);
+            box-shadow: none !important;
+        }
 
-.selected {
-    border-color: #4CAF50 !important;
-    opacity: 0.4 !important;
-    transform: scale(0.95) !important;
-    filter: grayscale(60%);
-}
+        p, #score, #timer {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
 
-p {
-    font-size: 1.3em;
-    margin-bottom: 20px;
-}
+        button {
+            padding: 14px 32px;
+            font-size: 1.2em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
 
-button {
-    padding: 12px 28px;
-    font-size: 1.1em;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-}
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.07);
+        }
 
-button:hover {
-    background-color: #45a049;
-    transform: scale(1.05);
-}
+        #timer {
+            font-weight: bold;
+            color: #d32f2f;
+        }
 
-#timer {
-    font-weight: bold;
-    color: #d32f2f;
-    font-size: 1.4em;
-}
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+        }
 
-.popup-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 999;
-}
+        .popup-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 3px solid #4CAF50;
+            border-radius: 14px;
+            padding: 40px;
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0px 0px 25px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
 
-.popup-notification {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #ffffff;
-    border: 3px solid #4CAF50;
-    border-radius: 12px;
-    padding: 30px;
-    text-align: center;
-    z-index: 1000;
-    display: none;
-    box-shadow: 0px 0px 20px rgba(0,0,0,0.25);
-    max-width: 300px;
-    width: 80%;
-}
+        .popup-notification p {
+            font-size: 1.3em;
+            margin-bottom: 25px;
+        }
 
-.popup-notification p {
-    font-size: 1.2em;
-    margin-bottom: 20px;
-}
+        .popup-notification button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 26px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
-.popup-notification button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 1em;
-    cursor: pointer;
-}
-
-.popup-notification button:hover {
-    background-color: #388e3c;
-}
-        .popup-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 999; }
-        .popup-notification { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #4CAF50; z-index: 1000; display: none; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.3); }
-        .popup-notification p { margin-bottom: 20px; font-size: 1.1em; }
-        .popup-notification button { padding: 8px 16px; background-color: #4CAF50; border: none; color: white; cursor: pointer; border-radius: 6px; }
-        .popup-notification button:hover { background-color: #388e3c; }
+        .popup-notification button:hover {
+            background-color: #388e3c;
+        }
     </style>
 </head>
 <body>
@@ -186,25 +181,25 @@ button:hover {
         if (localStorage.getItem('playerLocked') !== 'true') {
             showPopupAndRedirect("Please login first! Redirecting...", "../login.html");
         }
-    
+
         if (localStorage.getItem('ecoSubmitted') === 'true') {
             showPopupAndRedirect("You have already played! Redirecting...", "../index.html");
         }
-    
+
         const playerName = localStorage.getItem('playerName');
         const schoolName = localStorage.getItem('schoolName');
         const grade = localStorage.getItem('grade');
-    
+
         document.getElementById("playerInfo").innerHTML = `
             <strong>Player:</strong> ${playerName} <br>
             <strong>School:</strong> ${schoolName} <br>
             <strong>Grade:</strong> ${grade}
         `;
-    
+
         let score = parseInt(localStorage.getItem('ecoScore')) || 0;
         let scoreSubmitted = localStorage.getItem('ecoSubmitted') === 'true';
         let itemsClicked = JSON.parse(localStorage.getItem('clickedItems')) || [];
-    
+
         const products = document.querySelectorAll('.product');
         products.forEach(product => {
             if (itemsClicked.includes(product.src)) {
@@ -212,65 +207,63 @@ button:hover {
                 product.style.pointerEvents = 'none';
             }
         });
-    
+
         document.getElementById("score").innerText = score;
-    
+
         function selectItem(item) {
             if (itemsClicked.includes(item.src)) {
                 showPopup("Item already selected!");
                 return;
             }
-    
+
             item.classList.add("selected");
             score += parseInt(item.dataset.points);
             itemsClicked.push(item.src);
             localStorage.setItem('ecoScore', score);
             localStorage.setItem('clickedItems', JSON.stringify(itemsClicked));
             document.getElementById("score").innerText = score;
-    
-            // Auto-submit if all items are selected
+
             if (itemsClicked.length === products.length) {
                 submitScore(true);
             }
         }
-    
+
         function submitScore(auto = false) {
             if (scoreSubmitted) {
                 if (!auto) showPopup("You already submitted your score!");
                 return;
             }
-    
+
             if (itemsClicked.length < 3 && !auto) {
                 showPopup("Select at least 3 items before submitting!");
                 return;
             }
-    
+
             localStorage.setItem('ecoSubmitted', 'true');
             showPopup("Score submitted! Thank you. Redirecting...");
             setTimeout(() => {
                 window.location.href = "../index.html";
             }, 2500);
         }
-    
+
         function showPopup(message) {
             document.getElementById('popupOverlay').style.display = 'block';
             document.getElementById('popupNotification').style.display = 'block';
             document.getElementById('popupMessage').innerText = message;
         }
-    
+
         function showPopupAndRedirect(message, redirectUrl) {
             showPopup(message);
             setTimeout(() => {
                 window.location.href = redirectUrl;
             }, 2000);
         }
-    
+
         function closePopup() {
             document.getElementById('popupOverlay').style.display = 'none';
             document.getElementById('popupNotification').style.display = 'none';
         }
-    
-        // Timer: auto-submit when time runs out (fallback)
+
         let timer = 30;
         const countdown = setInterval(() => {
             timer--;
