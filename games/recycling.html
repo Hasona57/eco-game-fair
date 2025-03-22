@@ -42,7 +42,7 @@
     <p>Drag waste items to the correct bins! You can’t reuse items.</p>
 </header>
 
-<div class="game-area">
+<div class="game-area" id="game-area">
     <div id="items">
         <img src="../assets/plastic-bottle.png" class="item" draggable="true" data-correct="recycle" id="item1" ondragstart="drag(event)">
         <img src="../assets/apple-core.png" class="item" draggable="true" data-correct="compost" id="item2" ondragstart="drag(event)">
@@ -85,50 +85,35 @@
     const playerName = localStorage.getItem('playerName') || "Player";
     const schoolName = localStorage.getItem('schoolName') || "School";
     const grade = localStorage.getItem('grade') || "Grade";
-    document.getElementById('playerName').innerText = playerName;
-    document.getElementById('schoolName').innerText = schoolName;
-    document.getElementById('grade').innerText = grade;
+    document.getElementById('playerInfo').innerHTML = `<strong>${playerName}</strong> - ${schoolName}, Grade ${grade}`;
 
     let score = 0;
     let submitted = false;
-    let timeLeft = 60;
-    const gameArea = document.getElementById("game-area");
 
-    function spawnPolluter() {
-        const polluter = document.createElement("div");
-        polluter.className = "polluter";
-        polluter.style.top = `${Math.random() * 80}%`;
-        polluter.style.left = `${Math.random() * 80}%`;
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
 
-        const type = Math.random() < 0.7 ? "polluter" : "clean-item";
-        if (type === "polluter") {
-            polluter.innerHTML = Math.random() < 0.5 ? "🏭" : "🚗";
-            polluter.onclick = () => {
-                score += 50;
-                updateScore();
-                showPopup("Polluter cleared! +50 points");
-                polluter.remove();
-            };
-            setTimeout(() => {
-                if (gameArea.contains(polluter)) {
-                    score -= 30;
-                    updateScore();
-                    showPopup("You missed a polluter! -30 points");
-                    polluter.remove();
-                }
-            }, 2500);
+    function drag(ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+        ev.preventDefault();
+        const data = ev.dataTransfer.getData("text");
+        const draggedElement = document.getElementById(data);
+        const correctBin = draggedElement.getAttribute('data-correct');
+        const droppedBin = ev.target.id;
+
+        if (correctBin === droppedBin) {
+            score += 10;
+            showPopup("Correct! +10 points");
+            draggedElement.remove();
         } else {
-            polluter.innerHTML = "🌳";
-            polluter.onclick = () => {
-                score -= 40;
-                updateScore();
-                showPopup("Oops! This was a tree! -40 points");
-                polluter.remove();
-            };
-            setTimeout(() => polluter.remove(), 2500);
+            score -= 5;
+            showPopup("Wrong bin! -5 points");
         }
-
-        gameArea.appendChild(polluter);
+        updateScore();
     }
 
     function updateScore() {
@@ -145,27 +130,6 @@
         document.getElementById('popupOverlay').style.display = 'none';
         document.getElementById('popupNotification').style.display = 'none';
     }
-
-    function endGameAndSubmit() {
-        if (submitted) return;
-        submitted = true;
-        clearInterval(spawnInterval);
-        clearInterval(timerInterval);
-        localStorage.setItem('airPollutionScore', score);
-        localStorage.setItem('airPollutionPlayed', 'true');
-        showPopup("Time's up! Submitting your score...");
-
-        setTimeout(() => {
-            window.location.href = "../index.html";
-        }, 2000);
-    }
-
-    const spawnInterval = setInterval(spawnPolluter, 1200);
-    const timerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById('timer').innerText = timeLeft;
-        if (timeLeft <= 0) endGameAndSubmit();
-    }, 1000);
 </script>
 </body>
 </html>
