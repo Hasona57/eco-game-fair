@@ -16,7 +16,7 @@
             width: 80px; height: 80px; margin: 10px; cursor: grab;
         }
         #bins { text-align: center; }
-        #playerInfo { margin: 20px; }
+        #playerInfo { margin: 20px; font-size: 1.1em; }
         .disabled { pointer-events: none; opacity: 0.4; }
 
         #popupOverlay {
@@ -58,6 +58,7 @@
     </div>
 
     <p>Score: <span id="score">0</span></p>
+    <p>Time left: <span id="time">60</span> seconds</p>
 </div>
 
 <div id="popupOverlay"></div>
@@ -67,29 +68,44 @@
 </div>
 
 <script>
+    // Check login and block replay
     if (localStorage.getItem('playerLocked') !== 'true') {
         alert("Please login first!");
         window.location.href = "../login.html";
     }
 
     if (localStorage.getItem('airPollutionPlayed') === 'true') {
-        alert("You've already played this game. Redirecting to main page...");
+        alert("You've already played the Air Pollution game. Redirecting...");
         window.location.href = "../index.html";
     }
 
     if (localStorage.getItem('gamePlayed') === 'true') {
-        alert("You have already played this recycling & zero waste game. Redirecting to main page...");
+        alert("You have already played this recycling game. Redirecting...");
         window.location.href = "../index.html";
     }
 
+    // Player info display
     const playerName = localStorage.getItem('playerName') || "Player";
     const schoolName = localStorage.getItem('schoolName') || "School";
     const grade = localStorage.getItem('grade') || "Grade";
     document.getElementById('playerInfo').innerHTML = `<strong>${playerName}</strong> - ${schoolName}, Grade ${grade}`;
 
     let score = 0;
-    let submitted = false;
+    let totalItems = document.querySelectorAll('.item').length;
+    let timeLeft = 60;
 
+    // Timer countdown
+    function updateTimer() {
+        if (timeLeft > 0) {
+            timeLeft--;
+            document.getElementById('time').innerText = timeLeft;
+        } else {
+            endGame("Time's up!");
+        }
+    }
+    const timerInterval = setInterval(updateTimer, 1000);
+
+    // Drag & Drop Functions
     function allowDrop(ev) {
         ev.preventDefault();
     }
@@ -102,16 +118,21 @@
         ev.preventDefault();
         const data = ev.dataTransfer.getData("text");
         const draggedElement = document.getElementById(data);
+        if (!draggedElement) return;
         const correctBin = draggedElement.getAttribute('data-correct');
         const droppedBin = ev.target.id;
 
         if (correctBin === droppedBin) {
             score += 10;
-            showPopup("Correct! +10 points");
+            showPopup("✅ Correct! +10 points");
             draggedElement.remove();
+            totalItems--;
+            if (totalItems === 0) {
+                endGame("All items sorted!");
+            }
         } else {
             score -= 5;
-            showPopup("Wrong bin! -5 points");
+            showPopup("❌ Wrong bin! -5 points");
         }
         updateScore();
     }
@@ -120,6 +141,7 @@
         document.getElementById('score').innerText = score;
     }
 
+    // Popup handling
     function showPopup(message) {
         document.getElementById('popupOverlay').style.display = 'block';
         document.getElementById('popupNotification').style.display = 'block';
@@ -129,6 +151,17 @@
     function closePopup() {
         document.getElementById('popupOverlay').style.display = 'none';
         document.getElementById('popupNotification').style.display = 'none';
+    }
+
+    // End game logic
+    function endGame(message) {
+        clearInterval(timerInterval);
+        showPopup(message + `\n\nYour final score: ${score}`);
+        localStorage.setItem('recycleScore', score);
+        localStorage.setItem('gamePlayed', 'true');
+        setTimeout(() => {
+            window.location.href = "../index.html";
+        }, 3000);
     }
 </script>
 </body>
