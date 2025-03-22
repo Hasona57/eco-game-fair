@@ -79,7 +79,7 @@ const userId = playerName ? playerName.replace(/\s+/g, '_').toLowerCase() : "";
 if (localStorage.getItem('playerLocked') !== 'true' || !playerName) {
     showPopup("⚠️ Please login first. Redirecting...");
     setTimeout(() => {
-        window.location.href = "../login.html";
+        window.location.href = "https://hasona57.github.io/eco-game-fair/login.html";
     }, 2500);
 }
 
