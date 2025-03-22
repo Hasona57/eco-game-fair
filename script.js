@@ -163,13 +163,14 @@ aggregateAndSaveLeaderboard();
 
 // ✅ Firebase Config
 const firebaseConfig = {
-  apiKey: "AIzaSyD7-5ModW1PfFCw63Sbhxu9dG3Plaa4l6M",
-  authDomain: "alzaguardian.firebaseapp.com",
-  databaseURL: "https://alzaguardian-default-rtdb.firebaseio.com/",
-  projectId: "alzaguardian",
-  storageBucket: "alzaguardian.appspot.com",
-  messagingSenderId: "1062212822301",
-  appId: "1:1062212822301:web:42f75e5c12673df0427fcd"
+  apiKey: "AIzaSyBUxS71X4OmI0IA5vnnvnUKniB7KLzDdu4",
+  authDomain: "eco-game-fair.firebaseapp.com",
+  databaseURL: "https://eco-game-fair-default-rtdb.firebaseio.com",
+  projectId: "eco-game-fair",
+  storageBucket: "eco-game-fair.firebasestorage.app",
+  messagingSenderId: "504360474884",
+  appId: "1:504360474884:web:14e5603ce4cf0e08859851",
+  measurementId: "G-XJ91827ZQN"
 };
 
 // ✅ Initialize Firebase
