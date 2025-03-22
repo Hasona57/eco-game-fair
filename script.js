@@ -79,8 +79,23 @@ function drawGame() {
 
     // Draw booths
     booths.forEach(booth => {
-        ctx.fillStyle = booth.color;
-        ctx.fillRect(booth.x - 40, booth.y - 40, 80, 80);
+function drawBooth(x, y, color, label, nearPlayer = false) {
+    const gradient = ctx.createLinearGradient(x - 40, y - 40, x + 40, y + 40);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(1, "white");
+    
+    ctx.fillStyle = gradient;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = nearPlayer ? 40 : 20;
+    ctx.fillRect(x - 40, y - 40, 80, 80);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.font = nearPlayer ? "bold 15px Arial" : "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(label, x, y + 60);
+}
+
         ctx.fillStyle = "black";
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
