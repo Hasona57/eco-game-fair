@@ -49,38 +49,25 @@
             font-size: 1.4em;
             margin: 15px;
         }
-        .popup-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
         .popup-notification {
-            display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 3px solid #4CAF50;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            z-index: 1001;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            top: 20px;
+            right: 20px;
+            background: #ffffff;
+            border: 2px solid #4CAF50;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            font-size: 1.1em;
+            color: #333;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            z-index: 2000;
         }
-        .popup-notification p {
-            font-size: 1.2em;
-        }
-        .popup-notification button {
-            margin-top: 15px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        .popup-notification.show {
+            opacity: 1;
+            transform: translateX(0);
         }
     </style>
 </head>
@@ -113,10 +100,8 @@
     </div>
 </div>
 
-<div class="popup-overlay" id="popupOverlay"></div>
 <div class="popup-notification" id="popupNotification">
     <p id="popupMessage"></p>
-    <button onclick="closePopup()">OK</button>
 </div>
 
 <script>
@@ -180,14 +165,12 @@
     }
 
     function showPopup(message) {
-        document.getElementById('popupOverlay').style.display = 'block';
-        document.getElementById('popupNotification').style.display = 'block';
+        const popup = document.getElementById('popupNotification');
         document.getElementById('popupMessage').innerText = message;
-    }
-
-    function closePopup() {
-        document.getElementById('popupOverlay').style.display = 'none';
-        document.getElementById('popupNotification').style.display = 'none';
+        popup.classList.add('show');
+        setTimeout(() => {
+            popup.classList.remove('show');
+        }, 2000);
     }
 
     function checkAllAnimalsUsed() {
