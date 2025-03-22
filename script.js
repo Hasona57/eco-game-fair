@@ -77,8 +77,11 @@ document.addEventListener("keypress", (e) => {
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw booths
-    booths.forEach(booth => {
+booths.forEach(booth => {
+    const nearPlayer = Math.abs(player.x - booth.x) < 60 && Math.abs(player.y - booth.y) < 60;
+    drawBooth(booth.x, booth.y, booth.color, booth.label, nearPlayer);
+});
+
 function drawBooth(x, y, color, label, nearPlayer = false) {
     const gradient = ctx.createLinearGradient(x - 40, y - 40, x + 40, y + 40);
     gradient.addColorStop(0, color);
@@ -95,12 +98,6 @@ function drawBooth(x, y, color, label, nearPlayer = false) {
     ctx.textAlign = "center";
     ctx.fillText(label, x, y + 60);
 }
-
-        ctx.fillStyle = "black";
-        ctx.font = "14px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(booth.label, booth.x, booth.y + 60);
-    });
 
     // Draw player
     ctx.beginPath();
