@@ -1,237 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recycling & Zero Waste Booth</title>
-    <link rel="stylesheet" href="../styles.css">
+    <title>Recycling & Zero Waste Game</title>
     <style>
-        .bin {
-            width: 120px; height: 150px; border: 2px solid #333;
-            margin: 10px; display: inline-block;
-            text-align: center; line-height: 150px; font-size: 18px;
-            transition: background-color 0.3s;
-        }
-        .item {
-            width: 80px; height: 80px; margin: 10px; cursor: grab;
-        }
-        #bins { text-align: center; }
-        #playerInfo { margin: 20px; font-size: 1.1em; }
-        .disabled { pointer-events: none; opacity: 0.4; }
-
-        #popupOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.4); display: none; z-index: 9998;
-        }
-        #popupNotification {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #fff; padding: 30px 40px; box-shadow: 0 0 20px rgba(0,0,0,0.2);
-            border-radius: 10px; z-index: 9999; text-align: center; display: none;
-            font-size: 1.2em; color: #333;
-        }
-        #popupNotification button {
-            margin-top: 15px; padding: 8px 16px; background-color: #4CAF50;
-            border: none; color: white; border-radius: 5px; cursor: pointer;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
         }
 
-        /* Leaderboard Styling */
-        #leaderboard {
-            margin-top: 40px;
-            background: #f0f9f1;
-            border-radius: 10px;
+        h1 {
+            color: #2c7a7b;
+        }
+
+        #gameContainer {
+            margin: 20px auto;
+            max-width: 600px;
+            background: #fff;
             padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #timer, #score {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+
+        #question {
+            margin: 20px 0;
+        }
+
+        button.option {
+            display: block;
             width: 80%;
-            margin-left: auto;
-            margin-right: auto;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        #leaderboard h2 {
-            color: #27ae60;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
+            margin: 10px auto;
             padding: 10px;
-            border-bottom: 1px solid #ccc;
-        }
-        th {
-            background-color: #27ae60;
+            border: none;
+            border-radius: 10px;
+            background-color: #2c7a7b;
             color: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        button.option:hover {
+            background-color: #285e61;
+        }
+
+        #popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            display: none;
+        }
+
+        #popupMessage {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 80%;
         }
     </style>
 </head>
+
 <body>
-<header>
-    <h1>♻️ Sort & Reduce Waste</h1>
-    <div id="playerInfo"></div>
-    <p>Drag waste items to the correct bins! You can’t reuse items.</p>
-</header>
-
-<div class="game-area" id="game-area">
-    <div id="items">
-        <img src="../assets/plastic-bottle.png" class="item" draggable="true" data-correct="recycle" id="item1" ondragstart="drag(event)">
-        <img src="../assets/apple-core.png" class="item" draggable="true" data-correct="compost" id="item2" ondragstart="drag(event)">
-        <img src="../assets/clothing.png" class="item" draggable="true" data-correct="reuse" id="item3" ondragstart="drag(event)">
-        <img src="../assets/trash.png" class="item" draggable="true" data-correct="trash" id="item4" ondragstart="drag(event)">
+    <div id="gameContainer">
+        <h1>Recycling & Zero Waste Game</h1>
+        <div id="timer">Time Left: 60s</div>
+        <div id="score">Score: 0</div>
+        <div id="question">Click start to begin!</div>
+        <button id="startBtn">Start Game</button>
+        <div id="options"></div>
     </div>
 
-    <div id="bins">
-        <div class="bin" id="recycle" ondrop="drop(event)" ondragover="allowDrop(event)">♻️ Recycle</div>
-        <div class="bin" id="compost" ondrop="drop(event)" ondragover="allowDrop(event)">🍂 Compost</div>
-        <div class="bin" id="reuse" ondrop="drop(event)" ondragover="allowDrop(event)">🔄 Reuse</div>
-        <div class="bin" id="trash" ondrop="drop(event)" ondragover="allowDrop(event)">🗑️ Trash</div>
+    <div id="popup">
+        <div id="popupMessage"></div>
     </div>
 
-    <p>Score: <span id="score">0</span></p>
-    <p>Time left: <span id="time">60</span> seconds</p>
-</div>
+    <script>
+        const questions = [
+            { question: "Which of these can be recycled?", options: ["Plastic bottle", "Food waste", "Ceramic plate", "Used tissue"], answer: "Plastic bottle" },
+            { question: "What does the recycling symbol look like?", options: ["Three arrows in a triangle", "A tree", "A trash bin", "A leaf"], answer: "Three arrows in a triangle" },
+            { question: "Which bin should organic waste go into?", options: ["Green", "Blue", "Black", "Red"], answer: "Green" },
+            { question: "Which material is NOT recyclable?", options: ["Glass", "Aluminum", "Styrofoam", "Paper"], answer: "Styrofoam" },
+            { question: "What does zero waste mean?", options: ["No trash at all", "Reducing waste by reusing and recycling", "Not using plastic", "Throwing everything away"], answer: "Reducing waste by reusing and recycling" }
+        ];
 
-<div id="popupOverlay"></div>
-<div id="popupNotification">
-    <p id="popupMessage"></p>
-    <button onclick="closePopup()">OK</button>
-</div>
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let timeLeft = 60;
+        let timerInterval;
+        let playerName = localStorage.getItem('playerName') || 'Unknown';
+        let schoolName = localStorage.getItem('schoolName') || 'Unknown';
+        let grade = localStorage.getItem('grade') || 'Unknown';
 
-<!-- Leaderboard Section -->
-<div id="leaderboard">
-    <h2>🏆 Top 5 Recycling Game Scores</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Player</th>
-                <th>School</th>
-                <th>Grade</th>
-                <th>Score</th>
-            </tr>
-        </thead>
-        <tbody id="leaderboardTable">
-            <!-- Scores will be populated here -->
-        </tbody>
-    </table>
-</div>
+        document.getElementById("startBtn").addEventListener("click", startGame);
 
-<script>
-    if (localStorage.getItem('playerLocked') !== 'true') {
-        alert("Please login first!");
-        window.location.href = "../login.html";
-    }
-
-    if (localStorage.getItem('airPollutionPlayed') === 'true') {
-        alert("You've already played the Air Pollution game. Redirecting...");
-        window.location.href = "../index.html";
-    }
-
-    if (localStorage.getItem('gamePlayed') === 'true') {
-        alert("You have already played this recycling game. Redirecting...");
-        window.location.href = "../index.html";
-    }
-
-    const playerName = localStorage.getItem('playerName') || "Player";
-    const schoolName = localStorage.getItem('schoolName') || "School";
-    const grade = localStorage.getItem('grade') || "Grade";
-    document.getElementById('playerInfo').innerHTML = `<strong>${playerName}</strong> - ${schoolName}, Grade ${grade}`;
-
-    let score = 0;
-    let totalItems = document.querySelectorAll('.item').length;
-    let timeLeft = 60;
-
-    function updateTimer() {
-        if (timeLeft > 0) {
-            timeLeft--;
-            document.getElementById('time').innerText = timeLeft;
-        } else {
-            endGame("Time's up!");
+        function startGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            timeLeft = 60;
+            document.getElementById("score").textContent = `Score: ${score}`;
+            document.getElementById("startBtn").style.display = 'none';
+            showQuestion();
+            timerInterval = setInterval(updateTimer, 1000);
         }
-    }
-    const timerInterval = setInterval(updateTimer, 1000);
 
-    function allowDrop(ev) {
-        ev.preventDefault();
-    }
-
-    function drag(ev) {
-        ev.dataTransfer.setData("text", ev.target.id);
-    }
-
-    function drop(ev) {
-        ev.preventDefault();
-        const data = ev.dataTransfer.getData("text");
-        const draggedElement = document.getElementById(data);
-        if (!draggedElement) return;
-        const correctBin = draggedElement.getAttribute('data-correct');
-        const droppedBin = ev.target.id;
-
-        if (correctBin === droppedBin) {
-            score += 10;
-            showPopup("✅ Correct! +10 points");
-            draggedElement.remove();
-            totalItems--;
-            if (totalItems === 0) {
-                endGame("All items sorted!");
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                endGame("You've answered all questions!");
+                return;
             }
-        } else {
-            score -= 5;
-            showPopup("❌ Wrong bin! -5 points");
+
+            const currentQuestion = questions[currentQuestionIndex];
+            document.getElementById("question").textContent = currentQuestion.question;
+
+            const optionsContainer = document.getElementById("options");
+            optionsContainer.innerHTML = '';
+
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement("button");
+                button.textContent = option;
+                button.classList.add("option");
+                button.onclick = () => checkAnswer(option);
+                optionsContainer.appendChild(button);
+            });
         }
-        updateScore();
-    }
 
-    function updateScore() {
-        document.getElementById('score').innerText = score;
-    }
+        function checkAnswer(selectedOption) {
+            if (selectedOption === questions[currentQuestionIndex].answer) {
+                score += 10;
+            } else {
+                score -= 5;
+            }
 
-    function showPopup(message) {
-        document.getElementById('popupOverlay').style.display = 'block';
-        document.getElementById('popupNotification').style.display = 'block';
-        document.getElementById('popupMessage').innerText = message;
-    }
+            document.getElementById("score").textContent = `Score: ${score}`;
+            currentQuestionIndex++;
+            showQuestion();
+        }
 
-    function closePopup() {
-        document.getElementById('popupOverlay').style.display = 'none';
-        document.getElementById('popupNotification').style.display = 'none';
-    }
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById("timer").textContent = `Time Left: ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                endGame("Time's up!");
+            }
+        }
 
-    function endGame(message) {
-        clearInterval(timerInterval);
-        showPopup(message + `\n\nYour final score: ${score}`);
-        localStorage.setItem('recycleScore', score);
-        localStorage.setItem('gamePlayed', 'true');
+        function endGame(message) {
+            clearInterval(timerInterval);
+            showPopup(message + `\n\nYour final score: ${score}`);
+            localStorage.setItem('recycleScore', score);
+            localStorage.setItem('gamePlayed', 'true');
 
-        // Save score to leaderboard
-        const leaderboard = JSON.parse(localStorage.getItem('recycleLeaderboard') || '[]');
-        leaderboard.push({
-            name: playerName,
-            school: schoolName,
-            grade: grade,
-            score: score
-        });
-        leaderboard.sort((a, b) => b.score - a.score);
-        localStorage.setItem('recycleLeaderboard', JSON.stringify(leaderboard.slice(0, 5)));
+            const recycleLeaderboard = JSON.parse(localStorage.getItem('recycleLeaderboard') || '[]');
+            recycleLeaderboard.push({
+                name: playerName,
+                school: schoolName,
+                grade: grade,
+                score: score
+            });
+            recycleLeaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem('recycleLeaderboard', JSON.stringify(recycleLeaderboard.slice(0, 5)));
 
-        setTimeout(() => {
-            window.location.href = "../index.html";
-        }, 3000);
-    }
+            // Send score to main leaderboard for index.html
+            const mainLeaderboard = JSON.parse(localStorage.getItem('mainLeaderboard') || '[]');
+            mainLeaderboard.push({
+                name: playerName,
+                school: schoolName,
+                grade: grade,
+                score: score,
+                game: "Recycling & Zero Waste"
+            });
+            mainLeaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem('mainLeaderboard', JSON.stringify(mainLeaderboard.slice(0, 5)));
 
-    // Load leaderboard on page load
-    function loadLeaderboard() {
-        const leaderboard = JSON.parse(localStorage.getItem('recycleLeaderboard') || '[]');
-        const tableBody = document.getElementById('leaderboardTable');
-        leaderboard.forEach(entry => {
-            const row = `<tr>
-                <td>${entry.name}</td>
-                <td>${entry.school}</td>
-                <td>${entry.grade}</td>
-                <td>${entry.score}</td>
-            </tr>`;
-            tableBody.innerHTML += row;
-        });
-    }
+            setTimeout(() => {
+                window.location.href = "../index.html";
+            }, 3000);
+        }
 
-    loadLeaderboard();
-</script>
+        function showPopup(message) {
+            document.getElementById("popupMessage").textContent = message;
+            document.getElementById("popup").style.display = "flex";
+        }
+    </script>
 </body>
+
 </html>
