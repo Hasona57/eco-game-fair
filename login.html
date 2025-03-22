@@ -5,36 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Recycling Game</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-        input { display: block; margin: 10px auto; padding: 8px; width: 220px; }
-        button { padding: 10px 20px; cursor: pointer; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .glow-bg {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%);
+            border-radius: 50%;
+            filter: blur(100px);
+            animation: float 6s ease-in-out infinite alternate;
+        }
+
+        .glow-bg:nth-child(1) {
+            top: -100px;
+            left: -150px;
+        }
+
+        .glow-bg:nth-child(2) {
+            bottom: -100px;
+            right: -150px;
+            animation-delay: 3s;
+        }
+
+        @keyframes float {
+            from { transform: translateY(0px) translateX(0px); }
+            to { transform: translateY(30px) translateX(20px); }
+        }
+
+        .container {
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 25px;
+            padding: 50px 35px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: fadeIn 1.2s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #fff;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        p {
+            font-size: 1rem;
+            color: #f0f0f0;
+            opacity: 0.85;
+            margin-bottom: 30px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            margin: 12px 0;
+            border: none;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            transition: all 0.3s;
+            color: #333;
+        }
+
+        input:focus {
+            outline: none;
+            background: #fff;
+            box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.05rem;
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: white;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: all 0.35s ease;
+            letter-spacing: 0.6px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #00f2fe, #4facfe);
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 35px 25px;
+            }
+
+            h1 {
+                font-size: 1.9rem;
+            }
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
 </head>
 <body>
-    <h1>♻️ Recycling & Zero Waste Game</h1>
-    <p>Enter your details to start. They cannot be changed later.</p>
-    <input type="text" id="playerName" placeholder="Your Name">
-    <input type="text" id="schoolName" placeholder="Your School">
-    <input type="text" id="grade" placeholder="Your Grade">
-    <input type="tel" id="phoneNumber" placeholder="Your Phone Number">
-    <button onclick="saveDetails()">Start Game</button>
+    <div class="glow-bg"></div>
+    <div class="glow-bg"></div>
+
+    <div class="container">
+        <h1>♻️ Recycling & Zero Waste Game</h1>
+        <p>Enter your details to start. They cannot be changed later.</p>
+        <input type="text" id="playerName" placeholder="Your Name">
+        <input type="text" id="schoolName" placeholder="Your School">
+        <input type="text" id="grade" placeholder="Your Grade">
+        <input type="tel" id="phoneNumber" placeholder="Your Phone Number">
+        <button onclick="saveDetails()">Start Game</button>
+    </div>
 
     <script>
-        // ✅ Replace with your Firebase project configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBUxS71X4OmI0IA5vnnvnUKniB7KLzDdu4",
-  authDomain: "eco-game-fair.firebaseapp.com",
-  databaseURL: "https://eco-game-fair-default-rtdb.firebaseio.com",
-  projectId: "eco-game-fair",
-  storageBucket: "eco-game-fair.firebasestorage.app",
-  messagingSenderId: "504360474884",
-  appId: "1:504360474884:web:14e5603ce4cf0e08859851",
-  measurementId: "G-XJ91827ZQN"
+            authDomain: "eco-game-fair.firebaseapp.com",
+            databaseURL: "https://eco-game-fair-default-rtdb.firebaseio.com",
+            projectId: "eco-game-fair",
+            storageBucket: "eco-game-fair.firebasestorage.app",
+            messagingSenderId: "504360474884",
+            appId: "1:504360474884:web:14e5603ce4cf0e08859851",
+            measurementId: "G-XJ91827ZQN"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
@@ -54,14 +178,12 @@
                 return;
             }
 
-            // Save to local storage
             localStorage.setItem('playerName', playerName);
             localStorage.setItem('schoolName', schoolName);
             localStorage.setItem('grade', grade);
             localStorage.setItem('phoneNumber', phoneNumber);
             localStorage.setItem('playerLocked', 'true');
 
-            // Upload to Firebase
             const playerData = {
                 playerName,
                 schoolName,
@@ -70,7 +192,6 @@
                 timestamp: new Date().toISOString()
             };
 
-            // Push the data under /players
             database.ref('players').push(playerData, (error) => {
                 if (error) {
                     alert("Error saving to Firebase: " + error.message);
