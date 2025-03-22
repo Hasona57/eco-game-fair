@@ -102,6 +102,10 @@
     <div id="question-container"></div>
     <div id="notifications"></div>
 
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <script>
         if (localStorage.getItem('playerLocked') !== 'true') {
             alert("Please login first!");
@@ -109,8 +113,8 @@
         }
 
         if (localStorage.getItem('climateGameSubmitted') === 'true') {
-            showNotification("You have already played this quiz!", "error");
-            setTimeout(() => window.location.href = "../index.html", 1500);
+            alert("You have already played this quiz!");
+            window.location.href = "../index.html";
         }
 
         const playerName = localStorage.getItem('playerName');
@@ -121,6 +125,31 @@
             <strong>School:</strong> ${schoolName}<br>
             <strong>Grade:</strong> ${grade}
         `;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUxS71X4OmI0IA5vnnvnUKniB7KLzDdu4",
+            authDomain: "eco-game-fair.firebaseapp.com",
+            databaseURL: "https://eco-game-fair-default-rtdb.firebaseio.com",
+            projectId: "eco-game-fair",
+            storageBucket: "eco-game-fair.firebasestorage.app",
+            messagingSenderId: "504360474884",
+            appId: "1:504360474884:web:14e5603ce4cf0e08859851",
+            measurementId: "G-XJ91827ZQN"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function submitScoreToFirebase(name, school, grade, score) {
+            const userId = name.replace(/\s+/g, '_').toLowerCase();
+            database.ref('climate_leaderboard/' + userId).set({
+                playerName: name,
+                schoolName: school,
+                grade: grade,
+                score: score,
+                timestamp: new Date().toISOString()
+            });
+        }
 
         const questions = [
             {
@@ -207,8 +236,7 @@
             const userId = playerName.replace(/\s+/g, '_').toLowerCase();
             localStorage.setItem(`quizScore_${userId}`, score);
             localStorage.setItem('climateGameSubmitted', 'true');
-            submitScoreToFirebase("PlayerNameHere", playerScoreNumber);
-
+            submitScoreToFirebase(playerName, schoolName, grade, score);
 
             setTimeout(() => window.location.href = "../index.html", 2500);
         }
