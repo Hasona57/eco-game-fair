@@ -7,24 +7,30 @@
     <link rel="stylesheet" href="../styles.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(to top right, #e0f7fa, #f9fbe7);
             margin: 0;
             padding: 0;
         }
         header {
             text-align: center;
-            padding: 20px;
+            padding: 30px 20px;
             background-color: #4CAF50;
             color: white;
             border-bottom: 5px solid #2e7d32;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
         }
         .game-area {
             position: relative;
             height: 500px;
-            border: 2px solid #4CAF50;
-            margin: 20px auto;
+            border: 3px solid #4CAF50;
+            margin: 30px auto;
             max-width: 800px;
+            border-radius: 15px;
             overflow: hidden;
             background: linear-gradient(to bottom, #f1f8e9, #a5d6a7);
         }
@@ -38,44 +44,35 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: transform 0.2s ease;
+        }
+        .polluter:hover {
+            transform: scale(1.2);
         }
         .score-board {
             text-align: center;
             margin: 20px;
             font-size: 1.4em;
         }
-        .popup-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
+        /* Notification styling from the right side */
         .popup-notification {
-            display: none;
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 3px solid #4CAF50;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            z-index: 1001;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
-        }
-        .popup-notification p {
-            font-size: 1.2em;
-        }
-        .popup-notification button {
-            margin-top: 15px;
-            padding: 10px 20px;
+            top: 20px;
+            right: -400px;
+            width: 300px;
             background-color: #4CAF50;
-            border: none;
             color: white;
-            border-radius: 5px;
-            cursor: pointer;
+            border-radius: 10px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: right 0.5s ease, opacity 0.5s ease;
+            opacity: 0;
+            z-index: 2000;
+            font-size: 1.1em;
+        }
+        .popup-notification.show {
+            right: 20px;
+            opacity: 1;
         }
     </style>
 </head>
@@ -95,10 +92,8 @@
 
     <div id="game-area" class="game-area"></div>
 
-    <div class="popup-overlay" id="popupOverlay"></div>
     <div class="popup-notification" id="popupNotification">
         <p id="popupMessage"></p>
-        <button onclick="closePopup()">OK</button>
     </div>
 
     <script>
@@ -136,14 +131,14 @@
                 polluter.onclick = () => {
                     score += 50;
                     updateScore();
-                    showPopup("Polluter cleared! +50 points");
+                    showPopup("✅ Polluter cleared! +50 points");
                     polluter.remove();
                 };
                 setTimeout(() => {
                     if (gameArea.contains(polluter)) {
                         score -= 30;
                         updateScore();
-                        showPopup("You missed a polluter! -30 points");
+                        showPopup("⚠️ Missed a polluter! -30 points");
                         polluter.remove();
                     }
                 }, 2500);
@@ -152,7 +147,7 @@
                 polluter.onclick = () => {
                     score -= 40;
                     updateScore();
-                    showPopup("Oops! This was a tree! -40 points");
+                    showPopup("❌ That was a tree! -40 points");
                     polluter.remove();
                 };
                 setTimeout(() => polluter.remove(), 2500);
@@ -166,14 +161,13 @@
         }
     
         function showPopup(message) {
-            document.getElementById('popupOverlay').style.display = 'block';
-            document.getElementById('popupNotification').style.display = 'block';
-            document.getElementById('popupMessage').innerText = message;
-        }
-    
-        function closePopup() {
-            document.getElementById('popupOverlay').style.display = 'none';
-            document.getElementById('popupNotification').style.display = 'none';
+            const popup = document.getElementById('popupNotification');
+            const messageBox = document.getElementById('popupMessage');
+            messageBox.innerText = message;
+            popup.classList.add('show');
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 2500);
         }
     
         function endGameAndSubmit() {
@@ -183,11 +177,11 @@
             clearInterval(timerInterval);
             localStorage.setItem('airPollutionScore', score);
             localStorage.setItem('airPollutionPlayed', 'true');
-            showPopup("Time's up! Submitting your score...");
+            showPopup("⏳ Time's up! Submitting your score...");
     
             setTimeout(() => {
                 window.location.href = "../index.html";
-            }, 2000);
+            }, 3000);
         }
     
         const spawnInterval = setInterval(spawnPolluter, 1200);
