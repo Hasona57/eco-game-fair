@@ -7,67 +7,184 @@
     <link rel="stylesheet" href="../styles.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to top right, #c8e6c9, #ffffff);
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to top right, #a8e6cf, #dcedc1, #ffffff);
             margin: 0;
+            overflow-x: hidden;
         }
+
         header {
             text-align: center;
-            padding: 20px;
-            background-color: #4CAF50;
+            padding: 25px;
+            background: linear-gradient(90deg, #4CAF50, #66bb6a);
             color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
         }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            margin: 0;
+        }
+
+        .scoreboard {
+            text-align: center;
+            font-size: 1.3em;
+            margin: 20px;
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 10px 20px;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .scoreboard strong {
+            color: #2e7d32;
+        }
+
         .game-area {
             display: flex;
             justify-content: space-around;
-            margin: 20px;
+            align-items: flex-start;
+            margin: 30px;
+            flex-wrap: wrap;
         }
+
+        #animals {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
         .animal {
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             margin: 10px;
             cursor: grab;
-            transition: opacity 0.3s;
+            transition: transform 0.3s ease, opacity 0.3s;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
+
+        .animal:hover {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .animal:active {
+            cursor: grabbing;
+            transform: scale(1.05) rotate(5deg);
+        }
+
         .animal.used {
-            opacity: 0.4;
+            opacity: 0.3;
             cursor: not-allowed;
+            transform: scale(1) rotate(0deg);
+            filter: grayscale(80%);
         }
+
+        #habitats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            justify-items: center;
+            margin-top: 30px;
+        }
+
         .habitat {
-            width: 120px;
-            height: 120px;
+            width: 150px;
+            height: 150px;
             margin: 10px;
             border: 3px dashed #4CAF50;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1em;
+            font-size: 1.2em;
+            font-weight: bold;
             background-color: #f1f8e9;
+            border-radius: 18px;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        .scoreboard {
-            text-align: center;
-            font-size: 1.4em;
-            margin: 15px;
+
+        .habitat:hover {
+            background-color: #c8e6c9;
+            transform: scale(1.05);
         }
+
         .popup-notification {
             position: fixed;
             top: 20px;
             right: 20px;
             background: #ffffff;
             border: 2px solid #4CAF50;
-            padding: 15px 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            padding: 15px 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
             font-size: 1.1em;
             color: #333;
             opacity: 0;
-            transform: translateX(100%);
+            transform: translateX(120%);
             transition: opacity 0.4s ease, transform 0.4s ease;
             z-index: 2000;
         }
+
         .popup-notification.show {
             opacity: 1;
             transform: translateX(0);
+            animation: bounceIn 0.5s;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: translateX(120%) scale(0.9); opacity: 0; }
+            60% { transform: translateX(-10px) scale(1.05); opacity: 1; }
+            80% { transform: translateX(5px) scale(0.97); }
+            100% { transform: translateX(0) scale(1); }
+        }
+
+        /* Timer flash effect when time is low */
+        #timer {
+            transition: color 0.5s, font-weight 0.5s;
+        }
+
+        #timer.low-time {
+            color: red;
+            font-weight: bold;
+            animation: flashTimer 1s infinite;
+        }
+
+        @keyframes flashTimer {
+            0%, 50%, 100% { opacity: 1; }
+            25%, 75% { opacity: 0.4; }
+        }
+
+        @media screen and (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .animal {
+                width: 90px;
+                height: 90px;
+            }
+
+            .habitat {
+                width: 130px;
+                height: 130px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            header p {
+                font-size: 1em;
+            }
         }
     </style>
 </head>
@@ -105,7 +222,6 @@
 </div>
 
 <script>
-    // Lock check & one-time play verification
     if (localStorage.getItem('playerLocked') !== 'true') {
         alert("Please login first!");
         window.location.href = "../login.html";
@@ -153,7 +269,6 @@
         document.getElementById("score").innerText = score;
         setTimeout(() => ev.target.style.backgroundColor = "", 500);
 
-        // Mark animal as used (disable)
         const animal = Array.from(document.querySelectorAll('.animal'))
             .find(img => img.src === animalSrc);
         if (animal) {
@@ -196,7 +311,11 @@
 
     const timerInterval = setInterval(() => {
         timeLeft--;
-        document.getElementById('timer').innerText = timeLeft;
+        const timerElement = document.getElementById('timer');
+        timerElement.innerText = timeLeft;
+        if (timeLeft <= 10) {
+            timerElement.classList.add('low-time');
+        }
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             endGameAndSubmit();
