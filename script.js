@@ -160,3 +160,64 @@ function aggregateAndSaveLeaderboard() {
 
 // Call aggregation every time index.html loads
 aggregateAndSaveLeaderboard();
+
+// ✅ Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyD7-5ModW1PfFCw63Sbhxu9dG3Plaa4l6M",
+  authDomain: "alzaguardian.firebaseapp.com",
+  databaseURL: "https://alzaguardian-default-rtdb.firebaseio.com/",
+  projectId: "alzaguardian",
+  storageBucket: "alzaguardian.appspot.com",
+  messagingSenderId: "1062212822301",
+  appId: "1:1062212822301:web:42f75e5c12673df0427fcd"
+};
+
+// ✅ Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ✅ Function to submit score from anywhere in your game
+function submitScoreToFirebase(playerName, playerScore) {
+  if (playerName.trim() === '' || isNaN(playerScore)) {
+    console.error("Invalid player data");
+    return;
+  }
+
+  const newEntry = database.ref('leaderboard').push();
+  newEntry.set({
+    name: playerName,
+    score: playerScore
+  }).catch((error) => {
+    console.error("Error submitting score:", error);
+  });
+}
+
+// ✅ Load leaderboard dynamically from Firebase
+function loadLeaderboard() {
+  database.ref('leaderboard').on('value', (snapshot) => {
+    const data = snapshot.val();
+    const leaderboard = [];
+
+    for (let key in data) {
+      leaderboard.push({ name: data[key].name, score: data[key].score });
+    }
+
+    // Sort leaderboard by descending score
+    leaderboard.sort((a, b) => b.score - a.score);
+
+    // Update your leaderboard element (make sure <ul id="leaderboard"> exists in HTML)
+    const leaderboardList = document.getElementById('leaderboard');
+    if (leaderboardList) {
+      leaderboardList.innerHTML = '';
+      leaderboard.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${index + 1}. ${entry.name} - ${entry.score}`;
+        leaderboardList.appendChild(li);
+      });
+    }
+  });
+}
+
+// ✅ Load leaderboard on page load without HTML changes
+window.onload = loadLeaderboard;
+
