@@ -14,19 +14,6 @@ function updateCountdown() {
 }
 const countdownInterval = setInterval(updateCountdown, 1000);
 
-// Leaderboard Logic
-function updateLeaderboard() {
-    const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-    const list = document.getElementById('leaderboardList');
-    list.innerHTML = '';
-    leaderboard.forEach((entry, index) => {
-        const li = document.createElement('li');
-        li.textContent = `#${index + 1} ${entry.name} — ${entry.score} pts`;
-        list.appendChild(li);
-    });
-}
-updateLeaderboard();
-
 // Social Sharing
 document.querySelectorAll('.social-button').forEach(button => {
     button.addEventListener('click', (e) => {
@@ -76,27 +63,27 @@ document.addEventListener("keypress", (e) => {
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-booths.forEach(booth => {
-    const nearPlayer = Math.abs(player.x - booth.x) < 60 && Math.abs(player.y - booth.y) < 60;
-    drawBooth(booth.x, booth.y, booth.color, booth.label, nearPlayer);
-});
+    booths.forEach(booth => {
+        const nearPlayer = Math.abs(player.x - booth.x) < 60 && Math.abs(player.y - booth.y) < 60;
+        drawBooth(booth.x, booth.y, booth.color, booth.label, nearPlayer);
+    });
 
-function drawBooth(x, y, color, label, nearPlayer = false) {
-    const gradient = ctx.createLinearGradient(x - 40, y - 40, x + 40, y + 40);
-    gradient.addColorStop(0, color);
-    gradient.addColorStop(1, "white");
-    
-    ctx.fillStyle = gradient;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = nearPlayer ? 40 : 20;
-    ctx.fillRect(x - 40, y - 40, 80, 80);
-    ctx.shadowBlur = 0;
+    function drawBooth(x, y, color, label, nearPlayer = false) {
+        const gradient = ctx.createLinearGradient(x - 40, y - 40, x + 40, y + 40);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, "white");
 
-    ctx.fillStyle = "rgba(0,0,0,0.7)";
-    ctx.font = nearPlayer ? "bold 15px Arial" : "14px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText(label, x, y + 60);
-}
+        ctx.fillStyle = gradient;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = nearPlayer ? 40 : 20;
+        ctx.fillRect(x - 40, y - 40, 80, 80);
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.font = nearPlayer ? "bold 15px Arial" : "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(label, x, y + 60);
+    }
 
     // Draw player
     ctx.beginPath();
@@ -117,17 +104,31 @@ function movePlayer() {
 }
 
 drawGame();
-function submitToLeaderboard(gameScore) {
-    const playerName = localStorage.getItem('playerName');
-    if (!playerName) return;
 
-    let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-    leaderboard.push({ name: playerName, score: gameScore });
+// ✅ Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyBUxS71X4OmI0IA5vnnvnUKniB7KLzDdu4",
+  authDomain: "eco-game-fair.firebaseapp.com",
+  databaseURL: "https://eco-game-fair-default-rtdb.firebaseio.com",
+  projectId: "eco-game-fair",
+  storageBucket: "eco-game-fair.appspot.com",
+  messagingSenderId: "504360474884",
+  appId: "1:504360474884:web:14e5603ce4cf0e08859851"
+};
 
-    // Sort and keep only top 10
-    leaderboard = leaderboard.sort((a, b) => b.score - a.score).slice(0, 10);
-    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+// ✅ Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// ✅ Submit score to Firebase
+function submitScoreToFirebase(playerName, playerScore) {
+  if (playerName.trim() === '' || isNaN(playerScore)) return;
+
+  const newEntry = database.ref('leaderboard').push();
+  newEntry.set({ name: playerName, score: playerScore });
 }
+
+// ✅ Aggregate scores and submit to Firebase
 function aggregateAndSaveLeaderboard() {
     const playerName = localStorage.getItem('playerName');
     if (!playerName) return;
@@ -136,61 +137,13 @@ function aggregateAndSaveLeaderboard() {
     const climateScore = Number(localStorage.getItem(`quizScore_${userId}`)) || 0;
     const wasteScore = Number(localStorage.getItem('wasteGameScore')) || 0;
     const ecoScore = Number(localStorage.getItem('ecoScore')) || 0;
-    const homeScore = Number(localStorage.getItem('homeGameSubmitted') === 'true' ? 600 : 0); // assuming full completion = 600
+    const homeScore = Number(localStorage.getItem('homeGameSubmitted') === 'true' ? 600 : 0);
     const airScore = Number(localStorage.getItem('airPollutionScore')) || 0;
     const wildlifeScore = Number(localStorage.getItem('wildlifeScore')) || 0;
 
     const totalScore = climateScore + wasteScore + ecoScore + homeScore + airScore + wildlifeScore;
 
-    let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-    const existing = leaderboard.find(e => e.name === playerName);
-
-    if (existing) {
-        existing.score = Math.max(existing.score, totalScore);
-    } else {
-        leaderboard.push({ name: playerName, score: totalScore });
-    }
-
-    leaderboard.sort((a, b) => b.score - a.score);
-    leaderboard = leaderboard.slice(0, 10);
-
-    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-    updateLeaderboard();
-}
-
-// Call aggregation every time index.html loads
-aggregateAndSaveLeaderboard();
-
-// ✅ Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyBUxS71X4OmI0IA5vnnvnUKniB7KLzDdu4",
-  authDomain: "eco-game-fair.firebaseapp.com",
-  databaseURL: "https://eco-game-fair-default-rtdb.firebaseio.com",
-  projectId: "eco-game-fair",
-  storageBucket: "eco-game-fair.firebasestorage.app",
-  messagingSenderId: "504360474884",
-  appId: "1:504360474884:web:14e5603ce4cf0e08859851",
-  measurementId: "G-XJ91827ZQN"
-};
-
-// ✅ Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-// ✅ Function to submit score from anywhere in your game
-function submitScoreToFirebase(playerName, playerScore) {
-  if (playerName.trim() === '' || isNaN(playerScore)) {
-    console.error("Invalid player data");
-    return;
-  }
-
-  const newEntry = database.ref('leaderboard').push();
-  newEntry.set({
-    name: playerName,
-    score: playerScore
-  }).catch((error) => {
-    console.error("Error submitting score:", error);
-  });
+    submitScoreToFirebase(playerName, totalScore);
 }
 
 // ✅ Load leaderboard dynamically from Firebase
@@ -203,10 +156,8 @@ function loadLeaderboard() {
       leaderboard.push({ name: data[key].name, score: data[key].score });
     }
 
-    // Sort leaderboard by descending score
     leaderboard.sort((a, b) => b.score - a.score);
 
-    // Update your leaderboard element (make sure <ul id="leaderboard"> exists in HTML)
     const leaderboardList = document.getElementById('leaderboard');
     if (leaderboardList) {
       leaderboardList.innerHTML = '';
@@ -219,6 +170,8 @@ function loadLeaderboard() {
   });
 }
 
-// ✅ Load leaderboard on page load without HTML changes
-window.onload = loadLeaderboard;
-
+// ✅ Load leaderboard on window load
+window.onload = function () {
+  aggregateAndSaveLeaderboard(); 
+  loadLeaderboard();
+};
