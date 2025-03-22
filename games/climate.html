@@ -207,6 +207,8 @@
             const userId = playerName.replace(/\s+/g, '_').toLowerCase();
             localStorage.setItem(`quizScore_${userId}`, score);
             localStorage.setItem('climateGameSubmitted', 'true');
+            submitScoreToFirebase("PlayerNameHere", playerScoreNumber);
+
 
             setTimeout(() => window.location.href = "../index.html", 2500);
         }
