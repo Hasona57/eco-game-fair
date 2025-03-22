@@ -139,84 +139,80 @@
                 answer: "Carpooling"
             },
             {
-                question: "What does deforestation cause?",
-                options: ["Cleaner air", "More wildlife", "Soil erosion and climate problems", "Nothing"],
-                answer: "Soil erosion and climate problems"
+                question: "Which sector contributes most to global emissions?",
+                options: ["Transport", "Industry", "Electricity & Heat", "Agriculture"],
+                answer: "Electricity & Heat"
+            },
+            {
+                question: "What is the term for melting glaciers causing sea levels to rise?",
+                options: ["Ice Destruction", "Glacial Drift", "Glacial Retreat", "Iceberg Effect"],
+                answer: "Glacial Retreat"
             }
         ];
 
-        let score = 0;
         let currentQuestionIndex = 0;
-        let timer = 30;
-        let submitted = false;
-        let countdown; // Declare countdown globally to clear it later
+        let score = 0;
+        let timeLeft = 60; // 60 seconds
 
-        function loadQuestion() {
+        function showNotification(message, type = "info") {
+            const notification = document.createElement("div");
+            notification.className = `notification ${type}`;
+            notification.style.backgroundColor = type === "error" ? "#e74c3c" : "#2ecc71";
+            notification.textContent = message;
+            document.getElementById("notifications").appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            document.getElementById("timerFill").style.width = `${(timeLeft / 60) * 100}%`;
+            if (timeLeft <= 0) {
+                finishQuiz();
+            }
+        }
+
+        function displayQuestion() {
             if (currentQuestionIndex >= questions.length) {
-                submitClimateScore(score);
+                finishQuiz();
                 return;
             }
-            const currentQ = questions[currentQuestionIndex];
-            const container = document.getElementById('question-container');
+
+            const currentQuestion = questions[currentQuestionIndex];
+            const container = document.getElementById("question-container");
             container.innerHTML = `
                 <div class="question">
-                    <strong>Q${currentQuestionIndex + 1}: ${currentQ.question}</strong><br>
-                    ${currentQ.options.map(option => 
-                        `<button onclick="checkAnswer(decodeURIComponent('${encodeURIComponent(option)}'))">${option}</button>`
-                    ).join('')}
+                    <h3>Q${currentQuestionIndex + 1}: ${currentQuestion.question}</h3>
+                    ${currentQuestion.options.map(option => `<button onclick="answerQuestion('${option}')">${option}</button>`).join('')}
                 </div>
             `;
         }
 
-        function checkAnswer(selected) {
+        function answerQuestion(selected) {
             const correctAnswer = questions[currentQuestionIndex].answer;
             if (selected === correctAnswer) {
-                score += 100;
-                document.getElementById('score').innerText = score;
-                showNotification("Correct! ✅ +100 points", "success");
+                score += 200;
+                document.getElementById("score").innerText = score;
+                showNotification("Correct! +200 pts", "success");
             } else {
-                showNotification(`Wrong! ❌ Correct: ${correctAnswer}`, "error");
+                showNotification(`Wrong! Correct answer: ${correctAnswer}`, "error");
             }
             currentQuestionIndex++;
-            setTimeout(loadQuestion, 1000);
+            displayQuestion();
         }
 
-        function submitClimateScore(score) {
-            if (submitted) return;
-            submitted = true;
-            clearInterval(countdown);
+        function finishQuiz() {
+            clearInterval(timerInterval);
+            showNotification(`Quiz complete! Final Score: ${score}`, "success");
+
+            const userId = playerName.replace(/\s+/g, '_').toLowerCase();
+            localStorage.setItem(`quizScore_${userId}`, score);
             localStorage.setItem('climateGameSubmitted', 'true');
-            localStorage.setItem('climateGameScore', score);
-            showNotification(`Quiz completed! Score: ${score} ✅`, "success");
-            setTimeout(() => window.location.href = "../index.html", 2000);
+
+            setTimeout(() => window.location.href = "../index.html", 2500);
         }
 
-        function showNotification(message, type) {
-            const note = document.createElement("div");
-            note.classList.add("notification");
-            note.style.backgroundColor = type === "error" ? "#e74c3c" : "#27ae60";
-            note.innerText = message;
-            document.getElementById("notifications").appendChild(note);
-            setTimeout(() => { note.remove(); }, 3000);
-        }
-
-        function updateTimerBar() {
-            const percent = (timer / 30) * 100;
-            document.getElementById('timerFill').style.width = percent + "%";
-        }
-
-        countdown = setInterval(() => {
-            timer--;
-            updateTimerBar();
-            if (timer <= 0 && !submitted) {
-                clearInterval(countdown);
-                showNotification("⏳ Time's up! Submitting score.", "error");
-                submitClimateScore(score);
-            }
-        }, 1000);
-
-        updateTimerBar();
-        loadQuestion();
+        displayQuestion();
+        const timerInterval = setInterval(updateTimer, 1000);
     </script>
 </body>
 </html>
