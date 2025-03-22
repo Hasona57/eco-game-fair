@@ -52,7 +52,6 @@ const keys = { w: false, a: false, s: false, d: false };
 
 const booths = [
     { x: 150, y: 150, color: "skyblue", label: "Climate Change", link: "games/climate.html" },
-    { x: 400, y: 150, color: "lightgreen", label: "Recycling", link: "games/recycling.html" },
     { x: 650, y: 150, color: "lightcoral", label: "Eco Shopping", link: "games/shopping.html" },
     { x: 150, y: 400, color: "gold", label: "Green Home", link: "games/home.html" },
     { x: 400, y: 400, color: "violet", label: "Transportation", link: "games/transport.html" },
