@@ -1,220 +1,213 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Climate Crisis Speed Quiz</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            padding: 20px;
-            background: linear-gradient(135deg, #a8e063, #56ab2f);
-            color: #fff;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
-        }
-
-        #playerInfo, #scoreDisplay, #timerContainer {
-            text-align: center;
-            margin-bottom: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            border-radius: 12px;
-        }
-
-        #timerContainer {
-            width: 100%;
-            height: 20px;
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-
-        #timerFill {
-            height: 100%;
-            width: 100%;
-            background-color: #27ae60;
-            transition: width 1s linear;
-        }
-
-        #question-container {
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            max-width: 600px;
-            margin: auto;
-        }
-
-        .question {
-            margin-bottom: 20px;
-        }
-
-        button {
-            margin: 8px;
-            padding: 10px 16px;
-            cursor: pointer;
-            border: none;
-            border-radius: 12px;
-            background-color: #2ecc71;
-            color: white;
-            font-size: 16px;
-            transition: transform 0.2s, background-color 0.2s;
-        }
-
-        button:hover {
-            background-color: #27ae60;
-            transform: scale(1.05);
-        }
-
-        #notifications {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-        }
-
-        .notification {
-            padding: 12px 18px;
-            margin-top: 10px;
-            color: #fff;
-            border-radius: 8px;
-            animation: slide-in 0.4s ease-out;
-        }
-
-        @keyframes slide-in {
-            from { transform: translateX(150%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-    </style>
-</head>
-<body>
-    <h1>🌎 Climate Crisis Speed Quiz 🌿</h1>
-    <div id="playerInfo"></div>
-    <div id="scoreDisplay"><strong>Score:</strong> <span id="score">0</span></div>
-    <div id="timerContainer"><div id="timerFill"></div></div>
-    <div id="question-container"></div>
-    <div id="notifications"></div>
-
-    <script>
-        if (localStorage.getItem('playerLocked') !== 'true') {
-            alert("Please login first!");
-            window.location.href = "../login.html";
-        }
-
-        if (localStorage.getItem('climateGameSubmitted') === 'true') {
-            showNotification("You have already played this quiz!", "error");
-            setTimeout(() => window.location.href = "../index.html", 1500);
-        }
-
-        const playerName = localStorage.getItem('playerName');
-        const schoolName = localStorage.getItem('schoolName');
-        const grade = localStorage.getItem('grade');
-        document.getElementById("playerInfo").innerHTML = 
-            <strong>Player:</strong> ${playerName}<br>
-            <strong>School:</strong> ${schoolName}<br>
-            <strong>Grade:</strong> ${grade}
-        ;
-
-        const questions = [
-            {
-                question: "What gas is most responsible for climate change?",
-                options: ["Carbon Dioxide", "Oxygen", "Nitrogen", "Helium"],
-                answer: "Carbon Dioxide"
-            },
-            {
-                question: "Which energy source is renewable?",
-                options: ["Coal", "Oil", "Solar", "Natural Gas"],
-                answer: "Solar"
-            },
-            {
-                question: "Which action helps reduce carbon footprint?",
-                options: ["Using plastic bags", "Carpooling", "Wasting food", "Leaving lights on"],
-                answer: "Carpooling"
-            },
-            {
-                question: "Which sector contributes most to global emissions?",
-                options: ["Transport", "Industry", "Electricity & Heat", "Agriculture"],
-                answer: "Electricity & Heat"
-            },
-            {
-                question: "What is the term for melting glaciers causing sea levels to rise?",
-                options: ["Ice Destruction", "Glacial Drift", "Glacial Retreat", "Iceberg Effect"],
-                answer: "Glacial Retreat"
-            }
-        ];
-
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let timeLeft = 60; // 60 seconds
-
-        function showNotification(message, type = "info") {
-            const notification = document.createElement("div");
-            notification.className = notification ${type};
-            notification.style.backgroundColor = type === "error" ? "#e74c3c" : "#2ecc71";
-            notification.textContent = message;
-            document.getElementById("notifications").appendChild(notification);
-            setTimeout(() => notification.remove(), 3000);
-        }
-
-        function updateTimer() {
-            timeLeft--;
-            document.getElementById("timerFill").style.width = ${(timeLeft / 60) * 100}%;
-            if (timeLeft <= 0) {
-                finishQuiz();
-            }
-        }
-
-        function displayQuestion() {
-            if (currentQuestionIndex >= questions.length) {
-                finishQuiz();
-                return;
-            }
-
-            const currentQuestion = questions[currentQuestionIndex];
-            const container = document.getElementById("question-container");
-            container.innerHTML = 
-                <div class="question">
-                    <h3>Q${currentQuestionIndex + 1}: ${currentQuestion.question}</h3>
-                    ${currentQuestion.options.map(option => <button onclick="answerQuestion('${option}')">${option}</button>).join('')}
-                </div>
-            ;
-        }
-
-        function answerQuestion(selected) {
-            const correctAnswer = questions[currentQuestionIndex].answer;
-            if (selected === correctAnswer) {
-                score += 200;
-                document.getElementById("score").innerText = score;
-                showNotification("Correct! +200 pts", "success");
-            } else {
-                showNotification(Wrong! Correct answer: ${correctAnswer}, "error");
-            }
-            currentQuestionIndex++;
-            displayQuestion();
-        }
-
-        function finishQuiz() {
-            clearInterval(timerInterval);
-            showNotification(Quiz complete! Final Score: ${score}, "success");
-
-            const userId = playerName.replace(/\s+/g, '_').toLowerCase();
-            localStorage.setItem(quizScore_${userId}, score);
-            localStorage.setItem('climateGameSubmitted', 'true');
-            submitScoreToFirebase("PlayerNameHere", playerScoreNumber);
-
-
-            setTimeout(() => window.location.href = "../index.html", 2500);
-        }
-
-        displayQuestion();
-        const timerInterval = setInterval(updateTimer, 1000);
-    </script>
-</body>
-</html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Climate Crisis Speed Quiz</title>
+     <style>
+         body {
+             font-family: 'Segoe UI', sans-serif;
+             padding: 20px;
+             background: linear-gradient(135deg, #a8e063, #56ab2f);
+             color: #fff;
+         }
+ 
+         h1 {
+             text-align: center;
+             margin-bottom: 30px;
+             text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+         }
+ 
+         #playerInfo, #scoreDisplay, #timerContainer {
+             text-align: center;
+             margin-bottom: 20px;
+             background: rgba(0, 0, 0, 0.2);
+             padding: 10px;
+             border-radius: 12px;
+         }
+ 
+         #timerContainer {
+             width: 100%;
+             height: 20px;
+             background-color: rgba(0, 0, 0, 0.3);
+             border-radius: 10px;
+             overflow: hidden;
+             margin-bottom: 30px;
+         }
+ 
+         #timerFill {
+             height: 100%;
+             width: 100%;
+             background-color: #27ae60;
+             transition: width 1s linear;
+         }
+ 
+         #question-container {
+             background: rgba(255, 255, 255, 0.9);
+             color: #333;
+             padding: 20px;
+             border-radius: 20px;
+             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+             max-width: 600px;
+             margin: auto;
+         }
+ 
+         .question {
+             margin-bottom: 20px;
+         }
+ 
+         button {
+             margin: 8px;
+             padding: 10px 16px;
+             cursor: pointer;
+             border: none;
+             border-radius: 12px;
+             background-color: #2ecc71;
+             color: white;
+             font-size: 16px;
+             transition: transform 0.2s, background-color 0.2s;
+         }
+ 
+         button:hover {
+             background-color: #27ae60;
+             transform: scale(1.05);
+         }
+ 
+         #notifications {
+             position: fixed;
+             top: 20px;
+             right: 20px;
+             z-index: 999;
+         }
+ 
+         .notification {
+             padding: 12px 18px;
+             margin-top: 10px;
+             color: #fff;
+             border-radius: 8px;
+             animation: slide-in 0.4s ease-out;
+         }
+ 
+         @keyframes slide-in {
+             from { transform: translateX(150%); opacity: 0; }
+             to { transform: translateX(0); opacity: 1; }
+         }
+     </style>
+ </head>
+ <body>
+     <h1>🌎 Climate Crisis Speed Quiz 🌿</h1>
+     <div id="playerInfo"></div>
+     <div id="scoreDisplay"><strong>Score:</strong> <span id="score">0</span></div>
+     <div id="timerContainer"><div id="timerFill"></div></div>
+     <div id="question-container"></div>
+     <div id="notifications"></div>
+ 
+     <script>
+         if (localStorage.getItem('playerLocked') !== 'true') {
+             alert("Please login first!");
+             window.location.href = "../login.html";
+         }
+ 
+         if (localStorage.getItem('climateGameSubmitted') === 'true') {
+             showNotification("You have already played this quiz!", "error");
+             setTimeout(() => window.location.href = "../index.html", 1500);
+         }
+ 
+         const playerName = localStorage.getItem('playerName');
+         const schoolName = localStorage.getItem('schoolName');
+         const grade = localStorage.getItem('grade');
+         document.getElementById("playerInfo").innerHTML = `
+             <strong>Player:</strong> ${playerName}<br>
+             <strong>School:</strong> ${schoolName}<br>
+             <strong>Grade:</strong> ${grade}
+         `;
+ 
+         const questions = [
+             {
+                 question: "What gas is most responsible for climate change?",
+                 options: ["Carbon Dioxide", "Oxygen", "Nitrogen", "Helium"],
+                 answer: "Carbon Dioxide"
+             },
+             {
+                 question: "Which energy source is renewable?",
+                 options: ["Coal", "Oil", "Solar", "Natural Gas"],
+                 answer: "Solar"
+             },
+             {
+                 question: "Which action helps reduce carbon footprint?",
+                 options: ["Using plastic bags", "Carpooling", "Wasting food", "Leaving lights on"],
+                 answer: "Carpooling"
+             },
+             {
+                 question: "Which sector contributes most to global emissions?",
+                 options: ["Transport", "Industry", "Electricity & Heat", "Agriculture"],
+                 answer: "Electricity & Heat"
+             },
+             {
+                 question: "What is the term for melting glaciers causing sea levels to rise?",
+                 options: ["Ice Destruction", "Glacial Drift", "Glacial Retreat", "Iceberg Effect"],
+                 answer: "Glacial Retreat"
+             }
+         ];
+ 
+         let currentQuestionIndex = 0;
+         let score = 0;
+         let timeLeft = 60; // 60 seconds
+ 
+         function showNotification(message, type = "info") {
+             const notification = document.createElement("div");
+             notification.className = `notification ${type}`;
+             notification.style.backgroundColor = type === "error" ? "#e74c3c" : "#2ecc71";
+             notification.textContent = message;
+             document.getElementById("notifications").appendChild(notification);
+             setTimeout(() => notification.remove(), 3000);
+         }
+ 
+         function updateTimer() {
+             timeLeft--;
+             document.getElementById("timerFill").style.width = `${(timeLeft / 60) * 100}%`;
+             if (timeLeft <= 0) {
+                 finishQuiz();
+             }
+         }
+ 
+         function displayQuestion() {
+             if (currentQuestionIndex >= questions.length) {
+                 finishQuiz();
+                 return;
+             }
+ 
+             const currentQuestion = questions[currentQuestionIndex];
+             const container = document.getElementById("question-container");
+             container.innerHTML = `
+                 <div class="question">
+                     <h3>Q${currentQuestionIndex + 1}: ${currentQuestion.question}</h3>
+                     ${currentQuestion.options.map(option => `<button onclick="answerQuestion('${option}')">${option}</button>`).join('')}
+                 </div>
+             `;
+         }
+ 
+         function answerQuestion(selected) {
+             const correctAnswer = questions[currentQuestionIndex].answer;
+             if (selected === correctAnswer) {
+                 score += 200;
+                 document.getElementById("score").innerText = score;
+                 showNotification("Correct! +200 pts", "success");
+             } else {
+                 showNotification(`Wrong! Correct answer: ${correctAnswer}`, "error");
+             }
+             currentQuestionIndex++;
+             displayQuestion();
+         }
+ 
+         function finishQuiz() {
+             clearInterval(timerInterval);
+             showNotification(`Quiz complete! Final Score: ${score}`, "success");
+ 
+             const userId = playerName.replace(/\s+/g, '_').toLowerCase();
+             localStorage.setItem(`quizScore_${userId}`, score);
+             localStorage.setItem('climateGameSubmitted', 'true');
+ 
+ 
+             setTimeout(() => window.location.href = "../index.html", 2500);
+         }
