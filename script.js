@@ -6,13 +6,26 @@ function updateCountdown() {
     const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    document.getElementById("timer").innerText = `${hours}:${minutes}:${seconds}`;
+    document.getElementById("timer").innerText = ${hours}:${minutes}:${seconds};
     if (distance < 0) {
         clearInterval(countdownInterval);
         document.getElementById("timer").innerText = "Event Started!";
     }
 }
 const countdownInterval = setInterval(updateCountdown, 1000);
+
+// Leaderboard Logic
+function updateLeaderboard() {
+    const leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    const list = document.getElementById('leaderboardList');
+    list.innerHTML = '';
+    leaderboard.forEach((entry, index) => {
+        const li = document.createElement('li');
+        li.textContent = #${index + 1} ${entry.name} — ${entry.score} pts;
+        list.appendChild(li);
+    });
+}
+updateLeaderboard();
 
 // Social Sharing
 document.querySelectorAll('.social-button').forEach(button => {
@@ -21,11 +34,11 @@ document.querySelectorAll('.social-button').forEach(button => {
         const url = window.location.href;
         const text = "Join the Eco-Game Fair and compete to save the planet! 🌍🎮";
         if (button.querySelector('.fa-twitter')) {
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+            window.open(https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}, '_blank');
         } else if (button.querySelector('.fa-facebook')) {
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+            window.open(https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}, '_blank');
         } else if (button.querySelector('.fa-linkedin')) {
-            window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`, '_blank');
+            window.open(https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}, '_blank');
         }
     });
 });
@@ -63,27 +76,27 @@ document.addEventListener("keypress", (e) => {
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    booths.forEach(booth => {
-        const nearPlayer = Math.abs(player.x - booth.x) < 60 && Math.abs(player.y - booth.y) < 60;
-        drawBooth(booth.x, booth.y, booth.color, booth.label, nearPlayer);
-    });
+booths.forEach(booth => {
+    const nearPlayer = Math.abs(player.x - booth.x) < 60 && Math.abs(player.y - booth.y) < 60;
+    drawBooth(booth.x, booth.y, booth.color, booth.label, nearPlayer);
+});
 
-    function drawBooth(x, y, color, label, nearPlayer = false) {
-        const gradient = ctx.createLinearGradient(x - 40, y - 40, x + 40, y + 40);
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, "white");
+function drawBooth(x, y, color, label, nearPlayer = false) {
+    const gradient = ctx.createLinearGradient(x - 40, y - 40, x + 40, y + 40);
+    gradient.addColorStop(0, color);
+    gradient.addColorStop(1, "white");
+    
+    ctx.fillStyle = gradient;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = nearPlayer ? 40 : 20;
+    ctx.fillRect(x - 40, y - 40, 80, 80);
+    ctx.shadowBlur = 0;
 
-        ctx.fillStyle = gradient;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = nearPlayer ? 40 : 20;
-        ctx.fillRect(x - 40, y - 40, 80, 80);
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle = "rgba(0,0,0,0.7)";
-        ctx.font = nearPlayer ? "bold 15px Arial" : "14px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(label, x, y + 60);
-    }
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.font = nearPlayer ? "bold 15px Arial" : "14px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(label, x, y + 60);
+}
 
     // Draw player
     ctx.beginPath();
@@ -104,74 +117,46 @@ function movePlayer() {
 }
 
 drawGame();
+function submitToLeaderboard(gameScore) {
+    const playerName = localStorage.getItem('playerName');
+    if (!playerName) return;
 
-// ✅ Firebase Config
-const firebaseConfig = {
-  apiKey: "AIzaSyBUxS71X4OmI0IA5vnnvnUKniB7KLzDdu4",
-  authDomain: "eco-game-fair.firebaseapp.com",
-  databaseURL: "https://eco-game-fair-default-rtdb.firebaseio.com",
-  projectId: "eco-game-fair",
-  storageBucket: "eco-game-fair.appspot.com",
-  messagingSenderId: "504360474884",
-  appId: "1:504360474884:web:14e5603ce4cf0e08859851"
-};
+    let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    leaderboard.push({ name: playerName, score: gameScore });
 
-// ✅ Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-// ✅ Submit score to Firebase
-function submitScoreToFirebase(playerName, playerScore) {
-  if (playerName.trim() === '' || isNaN(playerScore)) return;
-
-  const newEntry = database.ref('leaderboard').push();
-  newEntry.set({ name: playerName, score: playerScore });
+    // Sort and keep only top 10
+    leaderboard = leaderboard.sort((a, b) => b.score - a.score).slice(0, 10);
+    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
 }
-
-// ✅ Aggregate scores and submit to Firebase
 function aggregateAndSaveLeaderboard() {
     const playerName = localStorage.getItem('playerName');
     if (!playerName) return;
 
     const userId = playerName.replace(/\s+/g, '_').toLowerCase();
-    const climateScore = Number(localStorage.getItem(`quizScore_${userId}`)) || 0;
+    const climateScore = Number(localStorage.getItem(quizScore_${userId})) || 0;
     const wasteScore = Number(localStorage.getItem('wasteGameScore')) || 0;
     const ecoScore = Number(localStorage.getItem('ecoScore')) || 0;
-    const homeScore = Number(localStorage.getItem('homeGameSubmitted') === 'true' ? 600 : 0);
+    const homeScore = Number(localStorage.getItem('homeGameSubmitted') === 'true' ? 600 : 0); // assuming full completion = 600
     const airScore = Number(localStorage.getItem('airPollutionScore')) || 0;
     const wildlifeScore = Number(localStorage.getItem('wildlifeScore')) || 0;
 
     const totalScore = climateScore + wasteScore + ecoScore + homeScore + airScore + wildlifeScore;
 
-    submitScoreToFirebase(playerName, totalScore);
-}
+    let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+    const existing = leaderboard.find(e => e.name === playerName);
 
-// ✅ Load leaderboard dynamically from Firebase
-function loadLeaderboard() {
-  database.ref('leaderboard').on('value', (snapshot) => {
-    const data = snapshot.val();
-    const leaderboard = [];
-
-    for (let key in data) {
-      leaderboard.push({ name: data[key].name, score: data[key].score });
+    if (existing) {
+        existing.score = Math.max(existing.score, totalScore);
+    } else {
+        leaderboard.push({ name: playerName, score: totalScore });
     }
 
     leaderboard.sort((a, b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 10);
 
-    const leaderboardList = document.getElementById('leaderboard');
-    if (leaderboardList) {
-      leaderboardList.innerHTML = '';
-      leaderboard.forEach((entry, index) => {
-        const li = document.createElement('li');
-        li.textContent = `${index + 1}. ${entry.name} - ${entry.score}`;
-        leaderboardList.appendChild(li);
-      });
-    }
-  });
+    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    updateLeaderboard();
 }
 
-// ✅ Load leaderboard on window load
-window.onload = function () {
-  aggregateAndSaveLeaderboard(); 
-  loadLeaderboard();
-};
+// Call aggregation every time index.html loads
+aggregateAndSaveLeaderboard();
